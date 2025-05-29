@@ -1,6 +1,21 @@
 // Simplified content script - works with any text field the user selects
 let recordingIndicator = null;
 
+// Debug mode
+const DEBUG = true;
+
+function debugLog(message, data = null) {
+  if (!DEBUG) return;
+  const timestamp = new Date().toISOString();
+  if (data) {
+    console.log(`[Content ${timestamp}] ${message}`, data);
+  } else {
+    console.log(`[Content ${timestamp}] ${message}`);
+  }
+}
+
+debugLog('Content script loaded on', window.location.href);
+
 // Listen for messages from background script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'startDictation') {
@@ -9,12 +24,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 function startDictation() {
+  debugLog('Starting dictation');
+  
   // Get the currently focused element
   const activeElement = document.activeElement;
+  debugLog('Active element', {
+    tagName: activeElement?.tagName,
+    type: activeElement?.type,
+    contentEditable: activeElement?.contentEditable,
+    isTextInput: isTextInput(activeElement)
+  });
   
   // Check if it's a text input field
   if (!isTextInput(activeElement)) {
     showNotification('Please click in a text field first', 'error');
+    debugLog('Not a text input field');
     return;
   }
   
@@ -24,12 +48,22 @@ function startDictation() {
   // Show recording indicator
   showRecordingIndicator();
   
+  debugLog('Sending startRecording message to background');
+  
   // Request recording from background script
   chrome.runtime.sendMessage({action: 'startRecording'}, (response) => {
     hideRecordingIndicator();
     
+    debugLog('Received response from background', response);
+    
     if (chrome.runtime.lastError) {
-      showNotification('Error: Extension error. Please reload the page.', 'error');
+      const error = chrome.runtime.lastError.message;
+      debugLog('Runtime error', error);
+      showNotification('Extension error: ' + error, 'error');
+      // Show debug info to user
+      if (response?.debugInfo) {
+        console.error('Debug info:', response.debugInfo);
+      }
       return;
     }
     
@@ -38,11 +72,20 @@ function startDictation() {
       if (target && document.body.contains(target)) {
         insertText(target, response.text);
         showNotification('Dictation complete!', 'success');
+        debugLog('Text inserted successfully');
       } else {
         showNotification('Text field no longer available', 'error');
+        debugLog('Target element lost');
       }
     } else if (response) {
-      showNotification('Error: ' + (response.error || 'Unknown error'), 'error');
+      const errorMsg = response.error || 'Unknown error';
+      showNotification('Error: ' + errorMsg, 'error');
+      debugLog('Error from background', errorMsg);
+      
+      // Log debug info if available
+      if (response.debugInfo) {
+        console.error('Debug information:', response.debugInfo);
+      }
     }
     
     // Clean up

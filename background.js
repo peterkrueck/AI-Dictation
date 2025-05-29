@@ -4,37 +4,101 @@ let mediaRecorder = null;
 let audioChunks = [];
 let offscreenDocument = null;
 
+// Debug logging system
+const DEBUG = true; // Set to false in production
+
+function debugLog(context, message, data = null) {
+  if (!DEBUG) return;
+  
+  const timestamp = new Date().toISOString();
+  const logMessage = `[${timestamp}] [${context}] ${message}`;
+  
+  if (data) {
+    console.log(logMessage, data);
+  } else {
+    console.log(logMessage);
+  }
+  
+  // Save to chrome.storage.local for persistence
+  chrome.storage.local.get(['debugLogs'], (result) => {
+    const logs = result.debugLogs || [];
+    logs.push({ timestamp, context, message, data: data ? JSON.stringify(data) : null });
+    // Keep only last 100 logs
+    if (logs.length > 100) logs.shift();
+    chrome.storage.local.set({ debugLogs: logs });
+  });
+}
+
+// Log extension startup
+debugLog('INIT', 'Extension background script loaded');
+chrome.runtime.getPlatformInfo((info) => {
+  debugLog('INIT', 'Platform info', info);
+});
+
 // Check if offscreen document exists
 async function hasOffscreenDocument() {
-  // Check if getContexts API is available (Chrome 116+)
-  if (chrome.runtime.getContexts) {
+  debugLog('OFFSCREEN', 'Checking if offscreen document exists');
+  
+  // Check Chrome version first
+  const manifest = chrome.runtime.getManifest();
+  debugLog('OFFSCREEN', 'Manifest version', manifest.minimum_chrome_version);
+  
+  if ('getContexts' in chrome.runtime) {
     try {
       const contexts = await chrome.runtime.getContexts({
         contextTypes: ['OFFSCREEN_DOCUMENT'],
         documentUrls: [chrome.runtime.getURL('offscreen.html')]
       });
+      debugLog('OFFSCREEN', `Found ${contexts.length} offscreen contexts`);
       return contexts.length > 0;
     } catch (error) {
-      console.log('getContexts API not available, using fallback');
+      debugLog('OFFSCREEN', 'getContexts error', error.message);
+      return false;
     }
+  } else {
+    debugLog('OFFSCREEN', 'getContexts API not available - Chrome too old');
+    return false;
   }
-  
-  // Fallback: always return false to recreate if needed
-  return false;
 }
 
 // Create offscreen document if it doesn't exist
 async function ensureOffscreenDocument() {
+  debugLog('OFFSCREEN', 'Ensuring offscreen document exists');
+  
   try {
-    if (!(await hasOffscreenDocument())) {
+    const exists = await hasOffscreenDocument();
+    
+    if (!exists) {
+      debugLog('OFFSCREEN', 'Creating new offscreen document');
+      
+      // Check permissions first
+      const permissions = await chrome.permissions.getAll();
+      debugLog('PERMISSIONS', 'Current permissions', permissions);
+      
       await chrome.offscreen.createDocument({
         url: chrome.runtime.getURL('offscreen.html'),
         reasons: ['USER_MEDIA'],
         justification: 'Recording audio for voice dictation'
       });
+      
+      debugLog('OFFSCREEN', 'Offscreen document created successfully');
+      
+      // Wait for initialization
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Verify it was created
+      const verifyExists = await hasOffscreenDocument();
+      debugLog('OFFSCREEN', 'Verification after creation', { exists: verifyExists });
+    } else {
+      debugLog('OFFSCREEN', 'Offscreen document already exists');
     }
   } catch (error) {
-    // If error is "Only a single offscreen document may be created", that's OK
+    debugLog('OFFSCREEN', 'Error ensuring offscreen document', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
+    
     if (!error.message.includes('Only a single offscreen document may be created')) {
       throw error;
     }
@@ -52,6 +116,12 @@ chrome.commands.onCommand.addListener((command) => {
 
 // Handle messages from content script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  debugLog('MESSAGE', 'Received message', { 
+    action: request.action, 
+    from: sender.tab?.id || sender.url || 'unknown',
+    hasCallback: typeof sendResponse === 'function'
+  });
+  
   if (request.action === 'startRecording') {
     startRecording(sender.tab, sendResponse);
     return true; // Keep channel open for async response
@@ -68,42 +138,101 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else {
       handleRecordingComplete(request.audioData, request.appName);
     }
+  } else if (request.action === 'getDebugLogs') {
+    // Add new debug action
+    chrome.storage.local.get(['debugLogs'], (result) => {
+      sendResponse(result.debugLogs || []);
+    });
+    return true;
   }
 });
 
 async function startRecording(tab, sendResponse) {
+  debugLog('RECORDING', 'Starting recording', { 
+    tabId: tab?.id, 
+    url: tab?.url,
+    title: tab?.title 
+  });
+  
   try {
-    // Get the current tab's title to detect the app/site
-    const appName = detectApp(tab.url, tab.title);
+    // Check Chrome management status
+    if (chrome.management && chrome.management.getSelf) {
+      const extensionInfo = await chrome.management.getSelf();
+      debugLog('MANAGEMENT', 'Extension info', extensionInfo);
+    }
     
-    // Ensure offscreen document exists (CHANGED FROM creating new one)
+    // Check permissions
+    const permissions = await chrome.permissions.getAll();
+    debugLog('PERMISSIONS', 'Available permissions before recording', permissions);
+    
+    // Detect app
+    const appName = detectApp(tab.url, tab.title);
+    debugLog('RECORDING', 'Detected app', appName);
+    
+    // Ensure offscreen document
     await ensureOffscreenDocument();
     
-    // Store the sendResponse callback to use later
+    // Store sendResponse callback
     chrome.runtime.sendResponseProxy = sendResponse;
     
-    // Start recording in offscreen document
-    chrome.runtime.sendMessage({
+    // Create a unique ID for this recording session
+    const sessionId = Date.now().toString();
+    debugLog('RECORDING', 'Starting session', sessionId);
+    
+    // Send message with timeout
+    let messageReceived = false;
+    
+    const sendPromise = chrome.runtime.sendMessage({
       action: 'startOffscreenRecording',
-      appName: appName
+      appName: appName,
+      sessionId: sessionId
+    }).then(() => {
+      messageReceived = true;
+      debugLog('RECORDING', 'Message sent to offscreen document');
+    }).catch(error => {
+      debugLog('RECORDING', 'Failed to send message to offscreen', error.message);
     });
+    
+    // Set timeout
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        if (!messageReceived) {
+          reject(new Error('Offscreen document did not respond within 5 seconds'));
+        }
+      }, 5000);
+    });
+    
+    await Promise.race([sendPromise, timeoutPromise]);
     
     isRecording = true;
     
-    // Show recording indicator
+    // Update badge
     chrome.action.setBadgeText({text: 'REC'});
     chrome.action.setBadgeBackgroundColor({color: '#FF0000'});
     
-    // Stop recording after 30 seconds max
+    // Auto-stop timeout
     setTimeout(() => {
       if (isRecording) {
+        debugLog('RECORDING', 'Auto-stopping after 30 seconds');
         stopRecording();
       }
     }, 30000);
     
   } catch (error) {
-    console.error('Recording error:', error);
-    sendResponse({success: false, error: error.message});
+    debugLog('RECORDING', 'Recording error', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
+    sendResponse({
+      success: false, 
+      error: error.message,
+      debugInfo: {
+        timestamp: new Date().toISOString(),
+        context: 'startRecording',
+        error: error.stack
+      }
+    });
   }
 }
 

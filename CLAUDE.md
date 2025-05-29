@@ -76,3 +76,23 @@ Manual testing is required for Chrome extensions:
 - **Added Chrome 116+ requirement** for proper offscreen API support
 - **Improved text insertion** with multiple fallback methods and clipboard support
 - **Better error handling** throughout the extension with clear user notifications
+- **Added comprehensive debugging system** for diagnosing permission issues on Chromebooks and managed devices
+
+## Debugging Features
+
+The extension now includes comprehensive debugging capabilities to help diagnose issues, especially on managed Chromebooks:
+
+- **Debug Logging System**: Persistent debug logs saved to chrome.storage.local (last 100 entries) with detailed context and timestamps
+- **Platform Detection**: Automatic detection of Chrome version, OS info, and extension management status
+- **Permission Monitoring**: Real-time monitoring of microphone permissions and offscreen document status
+- **Enhanced Error Reporting**: Detailed error categorization with user-friendly messages and technical details
+- **Debug Mode Activation**: Triple-click the extension popup title to enable debug mode
+- **Debug Log Viewer**: Click "🔍 View Debug Logs" button to output all logs to browser console
+- **Session Tracking**: Unique session IDs and complete message flow monitoring across all extension components
+
+### Using Debug Mode
+
+1. **Enable**: Triple-click the extension title in the popup to activate debug mode
+2. **View Logs**: Click the debug button that appears and check browser console (F12)
+3. **Production**: Set `DEBUG = false` in background.js and content.js before distribution
+4. **Troubleshooting**: Share console logs when reporting issues for faster diagnosis
