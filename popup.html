@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="popup-container">
+    <h2>🎤 AI Voice Dictation</h2>
+    
+    <div id="status" class="status">
+      <span class="status-dot"></span>
+      <span id="status-text">Ready</span>
+    </div>
+    
+    <button id="dictate-btn" class="dictate-btn">
+      Start Dictation
+      <span class="shortcut">Ctrl+Shift+1</span>
+    </button>
+    
+    <div class="settings-link">
+      <a href="#" id="settings-link">⚙️ Settings</a>
+    </div>
+    
+    <div class="tips">
+      <p><strong>Tips:</strong></p>
+      <ul>
+        <li>Click in any text field</li>
+        <li>Press Ctrl+Shift+1 or click button</li>
+        <li>Speak clearly</li>
+        <li>Press Enter/Esc or click to stop</li>
+      </ul>
+    </div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
