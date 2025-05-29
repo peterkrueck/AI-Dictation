@@ -49,12 +49,15 @@ This is a static Chrome extension project with no build process required. To dev
 ## Key Implementation Details
 
 - **API Integration**: Uses Groq API with Whisper Large V3 Turbo for transcription and configurable LLM models for text formatting
-- **Custom Models**: Supports both predefined models and custom model paths for future Groq model compatibility
+- **JSON Response Format**: LLM now returns structured JSON responses for consistent output parsing
+- **Custom Models**: Supports both predefined models (including Qwen QWQ 32B) and custom model paths for future Groq model compatibility
 - **Custom System Prompts**: Fully customizable AI instructions with reset to default functionality
+- **Enhanced System Prompt**: Prevents AI from interpreting dictated text as commands - treats all input as content to be formatted
 - **Offscreen Document**: Uses Chrome's offscreen API to handle audio recording in service worker context
 - **Context-Aware Formatting**: Detects the current website/app and adjusts writing style accordingly (e.g., formal for Gmail, casual for Slack, works on Google.com)
 - **Chrome Storage Sync**: Settings automatically sync across devices using `chrome.storage.sync`
 - **Keyboard Shortcut**: Default is Ctrl+Shift+1, configurable via chrome://extensions/shortcuts
+- **Extended Token Support**: Increased max tokens from 500 to 6000 for longer dictations
 
 ## Testing Approach
 
@@ -65,6 +68,9 @@ Manual testing is required for Chrome extensions:
 4. Verify API error handling and fallback behavior
 5. Test custom model path functionality
 6. Test custom system prompt configuration and reset functionality
+7. Test JSON response parsing with command-like dictations (e.g., "Can you help me schedule a meeting?")
+8. Test with Qwen QWQ 32B model option
+9. Verify longer dictations work with increased token limit
 
 ## Recent Fixes
 
@@ -81,6 +87,11 @@ Manual testing is required for Chrome extensions:
 - **Added comprehensive debugging system** for diagnosing permission issues on Chromebooks and managed devices
 - **Added custom system prompt configuration** - Users can now fully customize AI formatting instructions with reset to default functionality
 - **Updated default system prompt** - Now uses proven formatting instructions from macOS Shortcuts version with personal context support
+- **Implemented JSON response format** - LLM now returns structured JSON for consistent output parsing
+- **Enhanced system prompt** - Explicitly prevents AI from interpreting dictated text as commands or questions
+- **Added Qwen QWQ 32B model** - New model option available in settings
+- **Increased token limit** - Extended from 500 to 6000 tokens for longer dictations
+- **Added private address** - Included Waldweg 17, 56812 Dohr in spelling corrections
 
 ## Debugging Features
 
