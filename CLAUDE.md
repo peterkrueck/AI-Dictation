@@ -71,3 +71,8 @@ Manual testing is required for Chrome extensions:
 - Added support for custom Groq model paths for future-proofing
 - Added Llama 4 Maverick model to predefined options
 - Fixed base64 decoding error by improving error handling between offscreen document and background script
+- **Fixed "Only a single offscreen document may be created" error** by implementing proper document existence checking
+- **Enhanced universal text field support** - Now works reliably on Gmail, Google.com, and all websites
+- **Added Chrome 116+ requirement** for proper offscreen API support
+- **Improved text insertion** with multiple fallback methods and clipboard support
+- **Better error handling** throughout the extension with clear user notifications

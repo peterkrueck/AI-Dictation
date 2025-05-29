@@ -1,4 +1,4 @@
-// Content script runs in web pages and handles text insertion
+// Simplified content script - works with any text field the user selects
 let recordingIndicator = null;
 
 // Listen for messages from background script
@@ -18,6 +18,9 @@ function startDictation() {
     return;
   }
   
+  // Store the element reference
+  window.voiceDictationTarget = activeElement;
+  
   // Show recording indicator
   showRecordingIndicator();
   
@@ -25,85 +28,170 @@ function startDictation() {
   chrome.runtime.sendMessage({action: 'startRecording'}, (response) => {
     hideRecordingIndicator();
     
-    if (response.success) {
-      insertText(activeElement, response.text);
-      showNotification('Dictation complete!', 'success');
-    } else {
-      showNotification('Error: ' + response.error, 'error');
+    if (chrome.runtime.lastError) {
+      showNotification('Error: Extension error. Please reload the page.', 'error');
+      return;
     }
+    
+    if (response && response.success) {
+      const target = window.voiceDictationTarget;
+      if (target && document.body.contains(target)) {
+        insertText(target, response.text);
+        showNotification('Dictation complete!', 'success');
+      } else {
+        showNotification('Text field no longer available', 'error');
+      }
+    } else if (response) {
+      showNotification('Error: ' + (response.error || 'Unknown error'), 'error');
+    }
+    
+    // Clean up
+    window.voiceDictationTarget = null;
   });
 }
 
 function isTextInput(element) {
-  const tagName = element.tagName.toLowerCase();
+  if (!element) return false;
   
-  // Check for standard input elements
+  // For shadow DOM elements, try to get the actual input
+  if (element.shadowRoot) {
+    const shadowInput = element.shadowRoot.querySelector('input, textarea, [contenteditable="true"]');
+    if (shadowInput) {
+      element = shadowInput;
+    }
+  }
+  
+  const tagName = element.tagName?.toLowerCase();
+  
+  // Standard form inputs
   if (tagName === 'textarea') return true;
   if (tagName === 'input') {
-    const type = element.type.toLowerCase();
-    return ['text', 'email', 'search', 'url', 'tel', 'password'].includes(type);
+    const type = (element.type || 'text').toLowerCase();
+    const textTypes = ['text', 'email', 'search', 'url', 'tel', 'password', 'number', 'date', 'time', 'datetime-local'];
+    return textTypes.includes(type);
   }
   
-  // Check for contenteditable elements
-  if (element.contentEditable === 'true') return true;
+  // Contenteditable elements
+  if (element.isContentEditable) return true;
+  if (element.contentEditable === 'true' || element.contentEditable === 'plaintext-only') return true;
   
-  // Check for common WYSIWYG editors
-  if (element.classList.contains('ql-editor') || // Quill
-      element.classList.contains('trix-content') || // Trix
-      element.classList.contains('ProseMirror') || // ProseMirror
-      element.classList.contains('editable') || // Generic
-      element.getAttribute('role') === 'textbox' ||
-      element.getAttribute('role') === 'combobox') { // Google search uses this
-    return true;
-  }
+  // Role-based detection
+  const role = element.getAttribute('role');
+  if (role === 'textbox' || role === 'searchbox' || role === 'combobox') return true;
   
-  // Special check for Google search which might use shadow DOM
-  if (window.location.hostname.includes('google.com') && 
-      (element.name === 'q' || element.classList.contains('gLFyf'))) {
-    return true;
-  }
+  // Check if it has text-like attributes
+  if (element.hasAttribute('contenteditable')) return true;
+  
+  // Check for common editor indicators
+  const classNames = element.className || '';
+  const editorClasses = ['editor', 'editable', 'textbox', 'input'];
+  if (editorClasses.some(cls => classNames.toLowerCase().includes(cls))) return true;
   
   return false;
 }
 
 function insertText(element, text) {
-  // Save current selection
-  const start = element.selectionStart;
-  const end = element.selectionEnd;
+  if (!element) return;
   
-  if (element.tagName.toLowerCase() === 'textarea' || 
-      element.tagName.toLowerCase() === 'input') {
-    // Standard input/textarea
-    const currentValue = element.value;
-    const newValue = currentValue.substring(0, start) + text + currentValue.substring(end);
-    
-    element.value = newValue;
-    element.selectionStart = element.selectionEnd = start + text.length;
-    
-    // Trigger input event for frameworks
-    element.dispatchEvent(new Event('input', { bubbles: true }));
-    element.dispatchEvent(new Event('change', { bubbles: true }));
-  } else {
-    // ContentEditable or other rich text
+  // Focus the element first
+  element.focus();
+  
+  // Method 1: Try using execCommand (works for most contenteditable)
+  if (document.execCommand && element.isContentEditable) {
+    // Select all content if needed
     const selection = window.getSelection();
-    const range = selection.getRangeAt(0);
+    const range = document.createRange();
     
-    range.deleteContents();
-    const textNode = document.createTextNode(text);
-    range.insertNode(textNode);
+    // If there's selected text, it will be replaced
+    if (selection.rangeCount > 0) {
+      // Use existing selection
+    } else {
+      // Place cursor at end
+      range.selectNodeContents(element);
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
     
-    // Move cursor to end of inserted text
-    range.setStartAfter(textNode);
-    range.setEndAfter(textNode);
-    selection.removeAllRanges();
-    selection.addRange(range);
-    
-    // Trigger input event
-    element.dispatchEvent(new Event('input', { bubbles: true }));
+    // Try to insert text
+    if (document.execCommand('insertText', false, text)) {
+      // Trigger input event
+      element.dispatchEvent(new Event('input', { bubbles: true }));
+      return;
+    }
   }
   
-  // Focus the element
-  element.focus();
+  // Method 2: For input and textarea elements
+  if (element.tagName?.toLowerCase() === 'input' || element.tagName?.toLowerCase() === 'textarea') {
+    const start = element.selectionStart || 0;
+    const end = element.selectionEnd || start;
+    const currentValue = element.value || '';
+    
+    // Insert text at cursor position
+    element.value = currentValue.substring(0, start) + text + currentValue.substring(end);
+    
+    // Set cursor position after inserted text
+    const newPosition = start + text.length;
+    element.selectionStart = element.selectionEnd = newPosition;
+    
+    // Trigger events
+    element.dispatchEvent(new Event('input', { bubbles: true }));
+    element.dispatchEvent(new Event('change', { bubbles: true }));
+    return;
+  }
+  
+  // Method 3: For contenteditable using Selection API
+  if (element.isContentEditable) {
+    try {
+      const selection = window.getSelection();
+      let range;
+      
+      if (selection.rangeCount > 0) {
+        range = selection.getRangeAt(0);
+        range.deleteContents();
+      } else {
+        range = document.createRange();
+        range.selectNodeContents(element);
+        range.collapse(false);
+      }
+      
+      // Insert text node
+      const textNode = document.createTextNode(text);
+      range.insertNode(textNode);
+      
+      // Move cursor after inserted text
+      range.setStartAfter(textNode);
+      range.setEndAfter(textNode);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      
+      // Trigger input event
+      element.dispatchEvent(new Event('input', { bubbles: true }));
+      return;
+    } catch (e) {
+      console.error('Selection API method failed:', e);
+    }
+  }
+  
+  // Method 4: Fallback - try to set value or textContent
+  try {
+    if ('value' in element) {
+      element.value = (element.value || '') + text;
+      element.dispatchEvent(new Event('input', { bubbles: true }));
+    } else if ('textContent' in element) {
+      element.textContent = (element.textContent || '') + text;
+      element.dispatchEvent(new Event('input', { bubbles: true }));
+    } else {
+      throw new Error('Could not insert text');
+    }
+  } catch (e) {
+    // Last resort: Copy to clipboard
+    navigator.clipboard.writeText(text).then(() => {
+      showNotification('Could not insert directly. Text copied to clipboard - press Ctrl+V to paste.', 'info');
+    }).catch(() => {
+      showNotification('Could not insert text', 'error');
+    });
+  }
 }
 
 function showRecordingIndicator() {
@@ -128,7 +216,8 @@ function showRecordingIndicator() {
     gap: 10px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     cursor: pointer;
-    z-index: 999999;
+    z-index: 2147483647;
+    animation: slideIn 0.3s ease-out;
   `;
   
   const dot = recordingIndicator.querySelector('.recording-dot');
@@ -140,94 +229,109 @@ function showRecordingIndicator() {
     animation: pulse 1.5s infinite;
   `;
   
-  // Add animation
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.3; }
-      100% { opacity: 1; }
-    }
-  `;
-  document.head.appendChild(style);
+  // Add animations if not present
+  if (!document.getElementById('voice-dictation-styles')) {
+    const style = document.createElement('style');
+    style.id = 'voice-dictation-styles';
+    style.textContent = `
+      @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.3; }
+        100% { opacity: 1; }
+      }
+      @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
   
-  const stopRecordingAndHide = () => {
+  const stopRecording = () => {
     chrome.runtime.sendMessage({action: 'stopRecording'});
     hideRecordingIndicator();
   };
   
-  recordingIndicator.onclick = stopRecordingAndHide;
+  recordingIndicator.onclick = stopRecording;
   
-  // Add keyboard listener for Esc and Enter
-  const keyboardHandler = (e) => {
+  // Keyboard shortcuts to stop recording
+  const keyHandler = (e) => {
     if (e.key === 'Escape' || e.key === 'Enter') {
       e.preventDefault();
       e.stopPropagation();
-      stopRecordingAndHide();
-      document.removeEventListener('keydown', keyboardHandler, true);
+      stopRecording();
+      document.removeEventListener('keydown', keyHandler, true);
     }
   };
   
-  // Add keyboard listener with capture to ensure we get the event first
-  document.addEventListener('keydown', keyboardHandler, true);
-  
-  // Store the handler so we can remove it
-  recordingIndicator.keyboardHandler = keyboardHandler;
+  document.addEventListener('keydown', keyHandler, true);
+  recordingIndicator.keyHandler = keyHandler;
   
   document.body.appendChild(recordingIndicator);
-  
-  // Focus on the indicator for accessibility
-  recordingIndicator.tabIndex = -1;
-  recordingIndicator.focus();
 }
 
 function hideRecordingIndicator() {
   if (recordingIndicator) {
-    // Remove keyboard listener if it exists
-    if (recordingIndicator.keyboardHandler) {
-      document.removeEventListener('keydown', recordingIndicator.keyboardHandler, true);
+    if (recordingIndicator.keyHandler) {
+      document.removeEventListener('keydown', recordingIndicator.keyHandler, true);
     }
-    recordingIndicator.remove();
-    recordingIndicator = null;
+    recordingIndicator.style.animation = 'slideOut 0.3s ease-out';
+    setTimeout(() => {
+      if (recordingIndicator && recordingIndicator.parentNode) {
+        recordingIndicator.remove();
+        recordingIndicator = null;
+      }
+    }, 300);
   }
 }
 
 function showNotification(message, type = 'info') {
+  // Remove any existing notifications
+  const existing = document.getElementById('voice-dictation-notification');
+  if (existing) existing.remove();
+  
   const notification = document.createElement('div');
+  notification.id = 'voice-dictation-notification';
+  
+  const colors = {
+    error: '#FF4444',
+    success: '#44BB44',
+    info: '#2196F3'
+  };
+  
   notification.style.cssText = `
     position: fixed;
     top: 20px;
     right: 20px;
-    background: ${type === 'error' ? '#FF4444' : '#44BB44'};
+    background: ${colors[type] || colors.info};
     color: white;
     padding: 12px 20px;
     border-radius: 8px;
     font-family: system-ui, -apple-system, sans-serif;
     font-size: 14px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    z-index: 999999;
+    z-index: 2147483647;
     animation: slideIn 0.3s ease-out;
+    max-width: 350px;
+    word-wrap: break-word;
   `;
   notification.textContent = message;
   
   document.body.appendChild(notification);
   
+  const duration = type === 'error' ? 5000 : 3000;
   setTimeout(() => {
-    notification.style.animation = 'slideOut 0.3s ease-out';
-    setTimeout(() => notification.remove(), 300);
-  }, 3000);
+    if (notification && notification.parentNode) {
+      notification.style.animation = 'slideOut 0.3s ease-out';
+      setTimeout(() => {
+        if (notification && notification.parentNode) {
+          notification.remove();
+        }
+      }, 300);
+    }
+  }, duration);
 }
-
-// Add slide animations
-const animStyle = document.createElement('style');
-animStyle.textContent = `
-  @keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-  }
-  @keyframes slideOut {
-    from { transform: translateX(0); opacity: 1; }
-    to { transform: translateX(100%); opacity: 0; }
-  }
-`;
-document.head.appendChild(animStyle);

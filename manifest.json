@@ -3,6 +3,7 @@
   "name": "AI Voice Dictation",
   "version": "1.0",
   "description": "Intelligent voice dictation with Groq AI",
+  "minimum_chrome_version": "116",
   "permissions": [
     "activeTab",
     "storage",
@@ -21,7 +22,8 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"]
+      "js": ["content.js"],
+      "run_at": "document_idle"
     }
   ],
   "commands": {

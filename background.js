@@ -4,6 +4,43 @@ let mediaRecorder = null;
 let audioChunks = [];
 let offscreenDocument = null;
 
+// Check if offscreen document exists
+async function hasOffscreenDocument() {
+  // Check if getContexts API is available (Chrome 116+)
+  if (chrome.runtime.getContexts) {
+    try {
+      const contexts = await chrome.runtime.getContexts({
+        contextTypes: ['OFFSCREEN_DOCUMENT'],
+        documentUrls: [chrome.runtime.getURL('offscreen.html')]
+      });
+      return contexts.length > 0;
+    } catch (error) {
+      console.log('getContexts API not available, using fallback');
+    }
+  }
+  
+  // Fallback: always return false to recreate if needed
+  return false;
+}
+
+// Create offscreen document if it doesn't exist
+async function ensureOffscreenDocument() {
+  try {
+    if (!(await hasOffscreenDocument())) {
+      await chrome.offscreen.createDocument({
+        url: chrome.runtime.getURL('offscreen.html'),
+        reasons: ['USER_MEDIA'],
+        justification: 'Recording audio for voice dictation'
+      });
+    }
+  } catch (error) {
+    // If error is "Only a single offscreen document may be created", that's OK
+    if (!error.message.includes('Only a single offscreen document may be created')) {
+      throw error;
+    }
+  }
+}
+
 // Listen for keyboard shortcut
 chrome.commands.onCommand.addListener((command) => {
   if (command === 'start-dictation') {
@@ -39,15 +76,8 @@ async function startRecording(tab, sendResponse) {
     // Get the current tab's title to detect the app/site
     const appName = detectApp(tab.url, tab.title);
     
-    // Create offscreen document for recording if it doesn't exist
-    if (!offscreenDocument) {
-      await chrome.offscreen.createDocument({
-        url: chrome.runtime.getURL('offscreen.html'),
-        reasons: ['USER_MEDIA'],
-        justification: 'Recording audio for voice dictation'
-      });
-      offscreenDocument = true;
-    }
+    // Ensure offscreen document exists (CHANGED FROM creating new one)
+    await ensureOffscreenDocument();
     
     // Store the sendResponse callback to use later
     chrome.runtime.sendResponseProxy = sendResponse;
@@ -164,9 +194,14 @@ function detectApp(url, title) {
 
 async function processAudio(audioBlob, appName) {
   // Get API key from storage
-  const storage = await chrome.storage.sync.get(['groqApiKey', 'model']);
+  const storage = await chrome.storage.sync.get(['groqApiKey', 'model', 'customModel']);
   const apiKey = storage.groqApiKey;
-  const model = storage.model || 'meta-llama/Llama-4-Scout-17B-16E-Instruct';
+  let model = storage.model || 'meta-llama/Llama-4-Scout-17B-16E-Instruct';
+  
+  // Use custom model if selected
+  if (model === 'custom' && storage.customModel) {
+    model = storage.customModel;
+  }
   
   if (!apiKey) {
     throw new Error('Please set your Groq API key in the extension settings');
