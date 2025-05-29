@@ -1,5 +1,15 @@
 // Configuration page script
 
+// Default system prompt
+const DEFAULT_SYSTEM_PROMPT = `You are a writing assistant. The user is dictating text for AppName. Adjust style based on app:
+
+Slack/Discord: Casual, friendly
+Mail: Professional, formal
+Notes: Clear, organized
+Code editors: Technical, precise
+
+Fix grammar and spelling and remove filler words or duplications. Format nicely. Match the app's style. Output only corrected, well formated text. In case mentioned by the user here the correct spelling: last name: Krück; hotel: Hotel Haus Sonnschein; hotel address: Kerwerstraße 1, 56812 Cochem`;
+
 document.addEventListener('DOMContentLoaded', () => {
   const apiKeyInput = document.getElementById('api-key');
   const modelSelect = document.getElementById('model');
@@ -7,9 +17,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const customModelInput = document.getElementById('custom-model');
   const saveBtn = document.getElementById('save-btn');
   const saveStatus = document.getElementById('save-status');
+  const systemPromptTextarea = document.getElementById('system-prompt');
+  const resetPromptBtn = document.getElementById('reset-prompt-btn');
   
   // Load existing settings
-  chrome.storage.sync.get(['groqApiKey', 'model', 'customModel'], (result) => {
+  chrome.storage.sync.get(['groqApiKey', 'model', 'customModel', 'systemPrompt'], (result) => {
     if (result.groqApiKey) {
       apiKeyInput.value = result.groqApiKey;
     }
@@ -23,6 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
         modelSelect.value = result.model;
       }
     }
+    // Load system prompt or use default
+    systemPromptTextarea.value = result.systemPrompt || DEFAULT_SYSTEM_PROMPT;
   });
   
   // Handle model selection change
@@ -34,11 +48,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   
+  // Handle reset prompt button
+  resetPromptBtn.addEventListener('click', () => {
+    systemPromptTextarea.value = DEFAULT_SYSTEM_PROMPT;
+    showStatus('System prompt reset to default', 'success');
+  });
+  
   // Save settings
   saveBtn.addEventListener('click', () => {
     const apiKey = apiKeyInput.value.trim();
     let model = modelSelect.value;
     const customModel = customModelInput.value.trim();
+    const systemPrompt = systemPromptTextarea.value.trim();
     
     if (!apiKey) {
       showStatus('Please enter an API key', 'error');
@@ -58,10 +79,16 @@ document.addEventListener('DOMContentLoaded', () => {
       model = customModel;
     }
     
+    if (!systemPrompt) {
+      showStatus('System prompt cannot be empty', 'error');
+      return;
+    }
+    
     chrome.storage.sync.set({
       groqApiKey: apiKey,
       model: model,
-      customModel: customModel
+      customModel: customModel,
+      systemPrompt: systemPrompt
     }, () => {
       showStatus('Settings saved successfully!', 'success');
       // Sync storage to ensure it's available on all devices

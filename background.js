@@ -322,8 +322,8 @@ function detectApp(url, title) {
 }
 
 async function processAudio(audioBlob, appName) {
-  // Get API key from storage
-  const storage = await chrome.storage.sync.get(['groqApiKey', 'model', 'customModel']);
+  // Get settings from storage
+  const storage = await chrome.storage.sync.get(['groqApiKey', 'model', 'customModel', 'systemPrompt']);
   const apiKey = storage.groqApiKey;
   let model = storage.model || 'meta-llama/Llama-4-Scout-17B-16E-Instruct';
   
@@ -364,15 +364,25 @@ async function processAudio(audioBlob, appName) {
   }
   
   // Step 2: Format with LLM
-  const systemPrompt = `You are a writing assistant. The user is dictating text for ${appName}. Adjust style based on app:
+  // Use custom system prompt if available, otherwise use default
+  let systemPrompt = storage.systemPrompt;
+  
+  if (!systemPrompt) {
+    // Default system prompt if none is set
+    systemPrompt = `You are a writing assistant. The user is dictating text for AppName. Adjust style based on app:
 
-Google Search: Clear, concise search query
 Slack/Discord: Casual, friendly
-Gmail/Email: Professional, formal
+Mail: Professional, formal
 Notes: Clear, organized
 Code editors: Technical, precise
 
-Fix grammar and spelling and remove filler words or duplications. Format nicely. Match the app's style. Output only corrected, well formated text.`;
+Fix grammar and spelling and remove filler words or duplications. Format nicely. Match the app's style. Output only corrected, well formated text. In case mentioned by the user here the correct spelling: last name: Krück; hotel: Hotel Haus Sonnschein; hotel address: Kerwerstraße 1, 56812 Cochem`;
+  }
+  
+  // Add app context to the prompt
+  const contextualPrompt = `${systemPrompt}
+
+Current application context: ${appName}`;
   
   const llmResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
@@ -385,7 +395,7 @@ Fix grammar and spelling and remove filler words or duplications. Format nicely.
       messages: [
         {
           role: 'system',
-          content: systemPrompt
+          content: contextualPrompt
         },
         {
           role: 'user',

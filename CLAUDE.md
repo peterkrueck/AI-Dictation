@@ -14,7 +14,7 @@ The extension follows Chrome's Manifest V3 architecture with the following key c
 - **offscreen.html/js**: Offscreen document that handles actual audio recording using MediaRecorder API (required since service workers can't access getUserMedia)
 - **content.js**: Content script injected into web pages that detects text input fields (including Google search), shows recording UI, and inserts formatted text
 - **popup.html/js**: Extension popup interface for quick access to dictation functionality
-- **config.html/js**: Settings page for API key configuration, model selection, and custom model path support
+- **config.html/js**: Settings page for API key configuration, model selection, custom model path support, and custom system prompt configuration
 
 ## Development Commands
 
@@ -42,7 +42,7 @@ This is a static Chrome extension project with no build process required. To dev
 - `offscreen.html/js` - Offscreen document for audio recording via MediaRecorder
 - `content.js` - Content script for UI and text insertion (supports Google search)
 - `popup.html/js` - Extension popup interface
-- `config.html/js` - Settings page with custom model path support
+- `config.html/js` - Settings page with custom model path and system prompt support
 - `styles.css` - Shared styles for popup and config pages
 - `voice-dictation-extension.zip` - Packaged extension ready for distribution
 
@@ -50,6 +50,7 @@ This is a static Chrome extension project with no build process required. To dev
 
 - **API Integration**: Uses Groq API with Whisper Large V3 Turbo for transcription and configurable LLM models for text formatting
 - **Custom Models**: Supports both predefined models and custom model paths for future Groq model compatibility
+- **Custom System Prompts**: Fully customizable AI instructions with reset to default functionality
 - **Offscreen Document**: Uses Chrome's offscreen API to handle audio recording in service worker context
 - **Context-Aware Formatting**: Detects the current website/app and adjusts writing style accordingly (e.g., formal for Gmail, casual for Slack, works on Google.com)
 - **Chrome Storage Sync**: Settings automatically sync across devices using `chrome.storage.sync`
@@ -63,6 +64,7 @@ Manual testing is required for Chrome extensions:
 3. Test on various websites including Google.com search to ensure context detection works properly
 4. Verify API error handling and fallback behavior
 5. Test custom model path functionality
+6. Test custom system prompt configuration and reset functionality
 
 ## Recent Fixes
 
@@ -77,6 +79,8 @@ Manual testing is required for Chrome extensions:
 - **Improved text insertion** with multiple fallback methods and clipboard support
 - **Better error handling** throughout the extension with clear user notifications
 - **Added comprehensive debugging system** for diagnosing permission issues on Chromebooks and managed devices
+- **Added custom system prompt configuration** - Users can now fully customize AI formatting instructions with reset to default functionality
+- **Updated default system prompt** - Now uses proven formatting instructions from macOS Shortcuts version with personal context support
 
 ## Debugging Features
 
