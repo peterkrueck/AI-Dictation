@@ -1,3 +1,328 @@
+# Voice Dictation Extension - Complete Implementation Guide
+
+## Overview
+This document contains complete instructions to fix four critical issues in the Voice Dictation Chrome Extension. Please implement all changes exactly as specified.
+
+## Issues to Fix
+1. Debug mode not accessible (needs always-visible button)
+2. Keyboard shortcut (Ctrl+Shift+1) not working
+3. Text field detection failing on many websites
+4. Recording timeout too short (needs 60 seconds)
+
+## File Changes Required
+
+### 1. Update manifest.json
+**Add clipboard permission for the clipboard fallback feature:**
+
+```json
+{
+  "manifest_version": 3,
+  "name": "AI Voice Dictation",
+  "version": "1.1",
+  "description": "Intelligent voice dictation with Groq AI",
+  "minimum_chrome_version": "116",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting",
+    "offscreen",
+    "clipboardWrite"
+  ],
+  "optional_permissions": [
+    "management"
+  ],
+  "host_permissions": [
+    "https://api.groq.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "commands": {
+    "start-dictation": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+1",
+        "chromeos": "Ctrl+Shift+1"
+      },
+      "description": "Start voice dictation"
+    }
+  },
+  "options_page": "config.html"
+}
+```
+
+### 2. Replace popup.html
+**Complete replacement with debug button and force mode toggle:**
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="popup-container">
+    <h2>🎤 AI Voice Dictation</h2>
+    
+    <div id="status" class="status">
+      <span class="status-dot"></span>
+      <span id="status-text">Ready</span>
+    </div>
+    
+    <!-- NEW: Force Mode Toggle -->
+    <div class="force-mode-container">
+      <label class="toggle-label">
+        <input type="checkbox" id="force-mode-toggle">
+        <span>Force Mode</span>
+        <small>Dictate anywhere, copy to clipboard if needed</small>
+      </label>
+    </div>
+    
+    <button id="dictate-btn" class="dictate-btn">
+      Start Dictation
+      <span class="shortcut">Ctrl+Shift+1</span>
+    </button>
+    
+    <div class="settings-link">
+      <a href="#" id="settings-link">⚙️ Settings</a>
+    </div>
+    
+    <!-- NEW: Always visible debug button -->
+    <div class="debug-section">
+      <button id="debug-btn" class="debug-btn">
+        🐛 View Debug Logs
+      </button>
+    </div>
+    
+    <div class="tips">
+      <p><strong>Tips:</strong></p>
+      <ul>
+        <li>Click in any text field</li>
+        <li>Press <span class="actual-shortcut">Ctrl+Shift+1</span> or click button</li>
+        <li>Speak clearly</li>
+        <li>Press Enter/Esc or click to stop</li>
+      </ul>
+    </div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
+```
+
+### 3. Replace popup.js
+**Complete replacement with all new features:**
+
+```javascript
+// Popup script handles UI interactions
+
+document.addEventListener('DOMContentLoaded', () => {
+  const dictateBtn = document.getElementById('dictate-btn');
+  const settingsLink = document.getElementById('settings-link');
+  const statusText = document.getElementById('status-text');
+  const statusDot = document.querySelector('.status-dot');
+  const debugBtn = document.getElementById('debug-btn');
+  const forceModeToggle = document.getElementById('force-mode-toggle');
+  
+  // Check if API key is set
+  chrome.storage.sync.get(['groqApiKey', 'forceDictation'], (result) => {
+    if (!result.groqApiKey) {
+      statusText.textContent = 'API key not set';
+      statusDot.style.backgroundColor = '#FF4444';
+      dictateBtn.disabled = true;
+    } else {
+      statusText.textContent = 'Ready';
+      statusDot.style.backgroundColor = '#44BB44';
+    }
+    
+    // Set force mode toggle state
+    forceModeToggle.checked = result.forceDictation || false;
+  });
+  
+  // Display actual keyboard shortcut
+  chrome.commands.getAll((commands) => {
+    const dictationCommand = commands.find(cmd => cmd.name === 'start-dictation');
+    if (dictationCommand && dictationCommand.shortcut) {
+      document.querySelectorAll('.shortcut, .actual-shortcut').forEach(el => {
+        el.textContent = dictationCommand.shortcut;
+      });
+    } else {
+      document.querySelectorAll('.shortcut, .actual-shortcut').forEach(el => {
+        el.textContent = 'Not set';
+      });
+      // Add help text
+      const helpText = document.createElement('small');
+      helpText.style.color = '#666';
+      helpText.textContent = ' (Set in chrome://extensions/shortcuts)';
+      document.querySelector('.actual-shortcut').after(helpText);
+    }
+  });
+  
+  // Handle force mode toggle
+  forceModeToggle.addEventListener('change', () => {
+    chrome.storage.sync.set({ forceDictation: forceModeToggle.checked }, () => {
+      showNotification(
+        forceModeToggle.checked 
+          ? 'Force Mode enabled - dictate anywhere!' 
+          : 'Force Mode disabled', 
+        'success'
+      );
+    });
+  });
+  
+  // Handle debug button (always visible)
+  debugBtn.addEventListener('click', () => {
+    chrome.runtime.sendMessage({ action: 'getDebugLogs' }, (logs) => {
+      console.log('=== Voice Dictation Debug Logs ===');
+      console.log('Extension Version: 1.1');
+      console.log('Time:', new Date().toISOString());
+      console.log('Total Logs:', logs ? logs.length : 0);
+      console.log('');
+      
+      if (logs && logs.length > 0) {
+        logs.forEach(log => {
+          console.log(`[${log.timestamp}] [${log.context}] ${log.message}`, 
+            log.data ? JSON.parse(log.data) : '');
+        });
+        
+        // Copy to clipboard
+        const debugText = logs.map(log => 
+          `[${log.timestamp}] [${log.context}] ${log.message} ${log.data || ''}`
+        ).join('\n');
+        
+        navigator.clipboard.writeText(debugText).then(() => {
+          showNotification('Debug logs copied to clipboard & console (F12)', 'success');
+        }).catch(() => {
+          showNotification('Debug logs in console (F12)', 'success');
+        });
+      } else {
+        console.log('No debug logs found');
+      }
+      
+      console.log('=== End Debug Logs ===');
+    });
+  });
+  
+  // Handle dictation button click
+  dictateBtn.addEventListener('click', () => {
+    // Get active tab and start dictation
+    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+      chrome.tabs.sendMessage(tabs[0].id, {action: 'startDictation'});
+      window.close();
+    });
+  });
+  
+  // Handle settings link
+  settingsLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    chrome.runtime.openOptionsPage();
+  });
+});
+
+function showNotification(message, type) {
+  // Simple notification for popup
+  const notification = document.createElement('div');
+  notification.style.cssText = `
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    background: ${type === 'success' ? '#44BB44' : '#FF4444'};
+    color: white;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 9999;
+    text-align: center;
+  `;
+  notification.textContent = message;
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.remove();
+    }
+  }, 2000);
+}
+```
+
+### 4. Update styles.css
+**Add these styles to the end of the existing styles.css file:**
+
+```css
+/* Force Mode Toggle */
+.force-mode-container {
+  margin: 15px 0;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.toggle-label span {
+  font-weight: 500;
+  color: #333;
+}
+
+.toggle-label small {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #666;
+  margin-left: 26px;
+}
+
+/* Debug Button */
+.debug-section {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.debug-btn {
+  width: 100%;
+  padding: 8px 16px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.debug-btn:hover {
+  background: #5a6268;
+}
+```
+
+### 5. Replace content.js
+**Complete replacement with improved text detection and force mode:**
+
+```javascript
 // Content script with force mode and improved detection
 let recordingIndicator = null;
 let forceMode = false;
@@ -478,3 +803,155 @@ function showNotification(message, type = 'info') {
     }
   }, duration);
 }
+```
+
+### 6. Update background.js
+**Add these functions and modifications to the existing background.js file:**
+
+Find and replace the following sections:
+
+#### Add after the existing debugLog function:
+```javascript
+// Ensure content script is loaded before sending messages
+async function ensureContentScriptLoaded(tabId) {
+  try {
+    // Try to ping content script
+    const response = await chrome.tabs.sendMessage(tabId, { action: 'ping' });
+    debugLog('CONTENT_SCRIPT', 'Content script is responsive', response);
+    return true;
+  } catch (error) {
+    // Content script not loaded, inject it
+    debugLog('CONTENT_SCRIPT', 'Content script not found, injecting...', error.message);
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        files: ['content.js']
+      });
+      debugLog('CONTENT_SCRIPT', 'Content script injected successfully');
+      // Wait a bit for script to initialize
+      await new Promise(resolve => setTimeout(resolve, 100));
+      return true;
+    } catch (injectError) {
+      debugLog('CONTENT_SCRIPT', 'Failed to inject content script', injectError.message);
+      return false;
+    }
+  }
+}
+```
+
+#### Replace the chrome.commands.onCommand listener:
+```javascript
+// Listen for keyboard shortcut
+chrome.commands.onCommand.addListener(async (command) => {
+  if (command === 'start-dictation') {
+    debugLog('SHORTCUT', 'Keyboard shortcut triggered', command);
+    
+    try {
+      const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+      if (tab) {
+        debugLog('SHORTCUT', 'Active tab found', { id: tab.id, url: tab.url });
+        
+        const loaded = await ensureContentScriptLoaded(tab.id);
+        if (loaded) {
+          chrome.tabs.sendMessage(tab.id, {action: 'startDictation'});
+        } else {
+          // Could not load content script - maybe show a notification
+          debugLog('SHORTCUT', 'Could not ensure content script');
+        }
+      }
+    } catch (error) {
+      debugLog('SHORTCUT', 'Error handling shortcut', error);
+    }
+  }
+});
+```
+
+#### Add these variables before the startRecording function:
+```javascript
+let recordingStartTime = null;
+let countdownInterval = null;
+```
+
+#### In the startRecording function, after `isRecording = true;`, add:
+```javascript
+recordingStartTime = Date.now();
+
+// Start countdown updates
+countdownInterval = setInterval(() => {
+  if (isRecording) {
+    const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+    const remaining = 60 - elapsed;
+    
+    debugLog('RECORDING', `Time remaining: ${remaining}s`);
+    
+    if (remaining <= 10 && remaining > 0) {
+      // Send warning to content script
+      chrome.tabs.sendMessage(tab.id, {
+        action: 'recordingWarning',
+        secondsRemaining: remaining
+      }).catch(() => {
+        // Tab might be closed, ignore
+      });
+    }
+    
+    if (remaining <= 0) {
+      debugLog('RECORDING', 'Auto-stopping after 60 seconds');
+      stopRecording();
+    }
+  }
+}, 1000);
+```
+
+#### Change the timeout from 30000 to 60000:
+```javascript
+// Auto-stop timeout
+setTimeout(() => {
+  if (isRecording) {
+    debugLog('RECORDING', 'Auto-stopping after 60 seconds');
+    stopRecording();
+  }
+}, 60000); // Changed from 30000
+```
+
+#### In the stopRecording function, after `if (isRecording) {`, add:
+```javascript
+if (countdownInterval) {
+  clearInterval(countdownInterval);
+  countdownInterval = null;
+}
+```
+
+## Testing Instructions
+
+After implementing all changes:
+
+1. **Test Debug Mode**
+   - Click extension icon
+   - Click "View Debug Logs" button
+   - Check browser console (F12) for logs
+   - Verify logs are copied to clipboard
+
+2. **Test Keyboard Shortcut**
+   - Press Ctrl+Shift+1 on any webpage
+   - Verify recording starts
+   - Check if actual shortcut is displayed in popup
+
+3. **Test Force Mode**
+   - Enable Force Mode toggle in popup
+   - Try dictating on a page with no text fields
+   - Verify text is copied to clipboard
+
+4. **Test 60-second Recording**
+   - Start recording and wait
+   - Verify countdown appears at 10 seconds
+   - Verify auto-stop at 60 seconds
+
+## Version Update
+Remember to update the version in manifest.json to "1.1" to reflect these changes.
+
+## Summary
+This implementation fixes all four identified issues:
+1. ✅ Debug button is now always visible
+2. ✅ Keyboard shortcuts work reliably with content script injection
+3. ✅ Force Mode allows dictation anywhere with clipboard fallback
+4. ✅ Recording timeout increased to 60 seconds with countdown warning

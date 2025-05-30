@@ -13,6 +13,15 @@
       <span id="status-text">Ready</span>
     </div>
     
+    <!-- NEW: Force Mode Toggle -->
+    <div class="force-mode-container">
+      <label class="toggle-label">
+        <input type="checkbox" id="force-mode-toggle">
+        <span>Force Mode</span>
+        <small>Dictate anywhere, copy to clipboard if needed</small>
+      </label>
+    </div>
+    
     <button id="dictate-btn" class="dictate-btn">
       Start Dictation
       <span class="shortcut">Ctrl+Shift+1</span>
@@ -22,11 +31,18 @@
       <a href="#" id="settings-link">⚙️ Settings</a>
     </div>
     
+    <!-- NEW: Always visible debug button -->
+    <div class="debug-section">
+      <button id="debug-btn" class="debug-btn">
+        🐛 View Debug Logs
+      </button>
+    </div>
+    
     <div class="tips">
       <p><strong>Tips:</strong></p>
       <ul>
         <li>Click in any text field</li>
-        <li>Press Ctrl+Shift+1 or click button</li>
+        <li>Press <span class="actual-shortcut">Ctrl+Shift+1</span> or click button</li>
         <li>Speak clearly</li>
         <li>Press Enter/Esc or click to stop</li>
       </ul>

@@ -248,3 +248,61 @@ body {
 .config-section li {
   margin-bottom: 8px;
 }
+
+/* Force Mode Toggle */
+.force-mode-container {
+  margin: 15px 0;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.toggle-label span {
+  font-weight: 500;
+  color: #333;
+}
+
+.toggle-label small {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #666;
+  margin-left: 26px;
+}
+
+/* Debug Button */
+.debug-section {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.debug-btn {
+  width: 100%;
+  padding: 8px 16px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.debug-btn:hover {
+  background: #5a6268;
+}

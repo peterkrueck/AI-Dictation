@@ -3,6 +3,8 @@ let isRecording = false;
 let mediaRecorder = null;
 let audioChunks = [];
 let offscreenDocument = null;
+let recordingStartTime = null;
+let countdownInterval = null;
 
 // Debug logging system
 const DEBUG = true; // Set to false in production
@@ -105,12 +107,53 @@ async function ensureOffscreenDocument() {
   }
 }
 
+// Ensure content script is loaded before sending messages
+async function ensureContentScriptLoaded(tabId) {
+  try {
+    // Try to ping content script
+    const response = await chrome.tabs.sendMessage(tabId, { action: 'ping' });
+    debugLog('CONTENT_SCRIPT', 'Content script is responsive', response);
+    return true;
+  } catch (error) {
+    // Content script not loaded, inject it
+    debugLog('CONTENT_SCRIPT', 'Content script not found, injecting...', error.message);
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        files: ['content.js']
+      });
+      debugLog('CONTENT_SCRIPT', 'Content script injected successfully');
+      // Wait a bit for script to initialize
+      await new Promise(resolve => setTimeout(resolve, 100));
+      return true;
+    } catch (injectError) {
+      debugLog('CONTENT_SCRIPT', 'Failed to inject content script', injectError.message);
+      return false;
+    }
+  }
+}
+
 // Listen for keyboard shortcut
-chrome.commands.onCommand.addListener((command) => {
+chrome.commands.onCommand.addListener(async (command) => {
   if (command === 'start-dictation') {
-    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-      chrome.tabs.sendMessage(tabs[0].id, {action: 'startDictation'});
-    });
+    debugLog('SHORTCUT', 'Keyboard shortcut triggered', command);
+    
+    try {
+      const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+      if (tab) {
+        debugLog('SHORTCUT', 'Active tab found', { id: tab.id, url: tab.url });
+        
+        const loaded = await ensureContentScriptLoaded(tab.id);
+        if (loaded) {
+          chrome.tabs.sendMessage(tab.id, {action: 'startDictation'});
+        } else {
+          // Could not load content script - maybe show a notification
+          debugLog('SHORTCUT', 'Could not ensure content script');
+        }
+      }
+    } catch (error) {
+      debugLog('SHORTCUT', 'Error handling shortcut', error);
+    }
   }
 });
 
@@ -205,6 +248,32 @@ async function startRecording(tab, sendResponse) {
     await Promise.race([sendPromise, timeoutPromise]);
     
     isRecording = true;
+    recordingStartTime = Date.now();
+
+    // Start countdown updates
+    countdownInterval = setInterval(() => {
+      if (isRecording) {
+        const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+        const remaining = 60 - elapsed;
+        
+        debugLog('RECORDING', `Time remaining: ${remaining}s`);
+        
+        if (remaining <= 10 && remaining > 0) {
+          // Send warning to content script
+          chrome.tabs.sendMessage(tab.id, {
+            action: 'recordingWarning',
+            secondsRemaining: remaining
+          }).catch(() => {
+            // Tab might be closed, ignore
+          });
+        }
+        
+        if (remaining <= 0) {
+          debugLog('RECORDING', 'Auto-stopping after 60 seconds');
+          stopRecording();
+        }
+      }
+    }, 1000);
     
     // Update badge
     chrome.action.setBadgeText({text: 'REC'});
@@ -213,10 +282,10 @@ async function startRecording(tab, sendResponse) {
     // Auto-stop timeout
     setTimeout(() => {
       if (isRecording) {
-        debugLog('RECORDING', 'Auto-stopping after 30 seconds');
+        debugLog('RECORDING', 'Auto-stopping after 60 seconds');
         stopRecording();
       }
-    }, 30000);
+    }, 60000);
     
   } catch (error) {
     debugLog('RECORDING', 'Recording error', {
@@ -238,6 +307,10 @@ async function startRecording(tab, sendResponse) {
 
 function stopRecording() {
   if (isRecording) {
+    if (countdownInterval) {
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+    }
     // Send stop message to offscreen document
     chrome.runtime.sendMessage({action: 'stopOffscreenRecording'});
     isRecording = false;

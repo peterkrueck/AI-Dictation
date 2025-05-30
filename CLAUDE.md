@@ -56,8 +56,11 @@ This is a static Chrome extension project with no build process required. To dev
 - **Offscreen Document**: Uses Chrome's offscreen API to handle audio recording in service worker context
 - **Context-Aware Formatting**: Detects the current website/app and adjusts writing style accordingly (e.g., formal for Gmail, casual for Slack, works on Google.com)
 - **Chrome Storage Sync**: Settings automatically sync across devices using `chrome.storage.sync`
-- **Keyboard Shortcut**: Default is Ctrl+Shift+1, configurable via chrome://extensions/shortcuts
+- **Keyboard Shortcut**: Default is Ctrl+Shift+1, configurable via chrome://extensions/shortcuts - now with automatic content script injection
 - **Extended Token Support**: Increased max tokens from 500 to 6000 for longer dictations
+- **Force Mode**: New toggle that allows dictation anywhere, with clipboard fallback when no text field is available
+- **Enhanced Recording**: 60-second recording duration with countdown warning in the last 10 seconds
+- **Always-Visible Debug Button**: Debug logs are now accessible via a permanent button in the popup (no triple-click needed)
 
 ## Testing Approach
 
@@ -92,6 +95,12 @@ Manual testing is required for Chrome extensions:
 - **Added Qwen QWQ 32B model** - New model option available in settings
 - **Increased token limit** - Extended from 500 to 6000 tokens for longer dictations
 - **Added private address** - Included Waldweg 17, 56812 Dohr in spelling corrections
+- **Version 1.1 Updates**:
+  - **Fixed keyboard shortcut** - Now reliably works with automatic content script injection
+  - **Added Force Mode** - Toggle to dictate anywhere with clipboard fallback when no text field is available
+  - **Extended recording time** - Increased from 30 to 60 seconds with countdown warning
+  - **Always-visible debug button** - No more triple-clicking needed to access debug logs
+  - **Improved text field detection** - Better support for finding and tracking text input elements
 
 ## Debugging Features
 
@@ -101,13 +110,12 @@ The extension now includes comprehensive debugging capabilities to help diagnose
 - **Platform Detection**: Automatic detection of Chrome version, OS info, and extension management status
 - **Permission Monitoring**: Real-time monitoring of microphone permissions and offscreen document status
 - **Enhanced Error Reporting**: Detailed error categorization with user-friendly messages and technical details
-- **Debug Mode Activation**: Triple-click the extension popup title to enable debug mode
-- **Debug Log Viewer**: Click "🔍 View Debug Logs" button to output all logs to browser console
+- **Debug Log Viewer**: Click "🐛 View Debug Logs" button (always visible) to output all logs to browser console
 - **Session Tracking**: Unique session IDs and complete message flow monitoring across all extension components
+- **Clipboard Copy**: Debug logs are automatically copied to clipboard when viewing for easy sharing
 
 ### Using Debug Mode
 
-1. **Enable**: Triple-click the extension title in the popup to activate debug mode
-2. **View Logs**: Click the debug button that appears and check browser console (F12)
-3. **Production**: Set `DEBUG = false` in background.js and content.js before distribution
-4. **Troubleshooting**: Share console logs when reporting issues for faster diagnosis
+1. **View Logs**: Click the "🐛 View Debug Logs" button in the popup and check browser console (F12)
+2. **Production**: Set `DEBUG = false` in background.js and content.js before distribution
+3. **Troubleshooting**: Share console logs when reporting issues for faster diagnosis - logs are automatically copied to clipboard

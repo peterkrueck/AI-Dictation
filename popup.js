@@ -5,9 +5,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const settingsLink = document.getElementById('settings-link');
   const statusText = document.getElementById('status-text');
   const statusDot = document.querySelector('.status-dot');
+  const debugBtn = document.getElementById('debug-btn');
+  const forceModeToggle = document.getElementById('force-mode-toggle');
   
   // Check if API key is set
-  chrome.storage.sync.get(['groqApiKey'], (result) => {
+  chrome.storage.sync.get(['groqApiKey', 'forceDictation'], (result) => {
     if (!result.groqApiKey) {
       statusText.textContent = 'API key not set';
       statusDot.style.backgroundColor = '#FF4444';
@@ -16,29 +18,73 @@ document.addEventListener('DOMContentLoaded', () => {
       statusText.textContent = 'Ready';
       statusDot.style.backgroundColor = '#44BB44';
     }
+    
+    // Set force mode toggle state
+    forceModeToggle.checked = result.forceDictation || false;
   });
   
-  // Add debug mode check
-  chrome.storage.local.get(['debugMode'], (result) => {
-    if (result.debugMode) {
-      addDebugButton();
-    }
-  });
-  
-  // Enable debug mode with triple click on title
-  let clickCount = 0;
-  let clickTimer = null;
-  
-  document.querySelector('h2').addEventListener('click', () => {
-    clickCount++;
-    if (clickCount === 3) {
-      chrome.storage.local.set({ debugMode: true }, () => {
-        addDebugButton();
-        showNotification('Debug mode enabled', 'success');
+  // Display actual keyboard shortcut
+  chrome.commands.getAll((commands) => {
+    const dictationCommand = commands.find(cmd => cmd.name === 'start-dictation');
+    if (dictationCommand && dictationCommand.shortcut) {
+      document.querySelectorAll('.shortcut, .actual-shortcut').forEach(el => {
+        el.textContent = dictationCommand.shortcut;
       });
+    } else {
+      document.querySelectorAll('.shortcut, .actual-shortcut').forEach(el => {
+        el.textContent = 'Not set';
+      });
+      // Add help text
+      const helpText = document.createElement('small');
+      helpText.style.color = '#666';
+      helpText.textContent = ' (Set in chrome://extensions/shortcuts)';
+      document.querySelector('.actual-shortcut').after(helpText);
     }
-    clearTimeout(clickTimer);
-    clickTimer = setTimeout(() => clickCount = 0, 500);
+  });
+  
+  // Handle force mode toggle
+  forceModeToggle.addEventListener('change', () => {
+    chrome.storage.sync.set({ forceDictation: forceModeToggle.checked }, () => {
+      showNotification(
+        forceModeToggle.checked 
+          ? 'Force Mode enabled - dictate anywhere!' 
+          : 'Force Mode disabled', 
+        'success'
+      );
+    });
+  });
+  
+  // Handle debug button (always visible)
+  debugBtn.addEventListener('click', () => {
+    chrome.runtime.sendMessage({ action: 'getDebugLogs' }, (logs) => {
+      console.log('=== Voice Dictation Debug Logs ===');
+      console.log('Extension Version: 1.1');
+      console.log('Time:', new Date().toISOString());
+      console.log('Total Logs:', logs ? logs.length : 0);
+      console.log('');
+      
+      if (logs && logs.length > 0) {
+        logs.forEach(log => {
+          console.log(`[${log.timestamp}] [${log.context}] ${log.message}`, 
+            log.data ? JSON.parse(log.data) : '');
+        });
+        
+        // Copy to clipboard
+        const debugText = logs.map(log => 
+          `[${log.timestamp}] [${log.context}] ${log.message} ${log.data || ''}`
+        ).join('\n');
+        
+        navigator.clipboard.writeText(debugText).then(() => {
+          showNotification('Debug logs copied to clipboard & console (F12)', 'success');
+        }).catch(() => {
+          showNotification('Debug logs in console (F12)', 'success');
+        });
+      } else {
+        console.log('No debug logs found');
+      }
+      
+      console.log('=== End Debug Logs ===');
+    });
   });
   
   // Handle dictation button click
@@ -57,37 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-function addDebugButton() {
-  const container = document.querySelector('.popup-container');
-  const debugBtn = document.createElement('button');
-  debugBtn.textContent = '🔍 View Debug Logs';
-  debugBtn.className = 'debug-btn';
-  debugBtn.style.cssText = `
-    width: 100%;
-    margin-top: 10px;
-    padding: 8px;
-    background: #ff9800;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  `;
-  
-  debugBtn.addEventListener('click', () => {
-    chrome.runtime.sendMessage({ action: 'getDebugLogs' }, (logs) => {
-      console.log('=== Debug Logs ===');
-      logs.forEach(log => {
-        console.log(`[${log.timestamp}] [${log.context}] ${log.message}`, 
-          log.data ? JSON.parse(log.data) : '');
-      });
-      console.log('=== End Debug Logs ===');
-      alert('Debug logs printed to console. Press F12 to view.');
-    });
-  });
-  
-  container.appendChild(debugBtn);
-}
-
 function showNotification(message, type) {
   // Simple notification for popup
   const notification = document.createElement('div');
@@ -102,6 +117,7 @@ function showNotification(message, type) {
     border-radius: 4px;
     font-size: 12px;
     z-index: 9999;
+    text-align: center;
   `;
   notification.textContent = message;
   document.body.appendChild(notification);
