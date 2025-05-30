@@ -1,5 +1,5 @@
 // Translation system for the Voice Dictation extension
-const translations = {
+export const translations = {
   en: {
     // Popup
     extensionTitle: "🎤 AI Voice Dictation",
@@ -248,7 +248,7 @@ const translations = {
 };
 
 // Helper function to get current language
-function getCurrentLanguage() {
+export function getCurrentLanguage() {
   return new Promise((resolve) => {
     chrome.storage.sync.get(['language'], (result) => {
       resolve(result.language || 'en');
@@ -257,7 +257,7 @@ function getCurrentLanguage() {
 }
 
 // Helper function to get translation
-async function t(key, replacements = {}) {
+export async function t(key, replacements = {}) {
   const lang = await getCurrentLanguage();
   let text = translations[lang]?.[key] || translations.en[key] || key;
   
@@ -267,9 +267,4 @@ async function t(key, replacements = {}) {
   });
   
   return text;
-}
-
-// Export for use in other scripts
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { translations, getCurrentLanguage, t };
 }

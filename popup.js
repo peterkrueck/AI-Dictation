@@ -1,10 +1,18 @@
 // Popup script handles UI interactions
 
 // Import translations
-import('./translations.js').then(module => {
-  const { t, getCurrentLanguage } = module;
-  
-  document.addEventListener('DOMContentLoaded', async () => {
+import { t, getCurrentLanguage, translations } from './translations.js';
+
+// Add error handler
+window.addEventListener('error', (e) => {
+  console.error('Popup script error:', e);
+});
+
+console.log('Popup script loaded');
+
+document.addEventListener('DOMContentLoaded', async () => {
+  console.log('DOM loaded, initializing popup...');
+  try {
     const dictateBtn = document.getElementById('dictate-btn');
     const settingsLink = document.getElementById('settings-link');
     const statusText = document.getElementById('status-text');
@@ -96,6 +104,7 @@ import('./translations.js').then(module => {
     
     // Handle dictation button click
     dictateBtn.addEventListener('click', () => {
+      console.log('Dictate button clicked');
       // Get active tab and start dictation
       chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
         chrome.tabs.sendMessage(tabs[0].id, {action: 'startDictation'});
@@ -106,6 +115,7 @@ import('./translations.js').then(module => {
     // Handle settings link
     settingsLink.addEventListener('click', (e) => {
       e.preventDefault();
+      console.log('Settings link clicked');
       chrome.runtime.openOptionsPage();
     });
     
@@ -137,7 +147,7 @@ import('./translations.js').then(module => {
       
       // Handle array translations
       const lang = await getCurrentLanguage();
-      const tipsList_translated = module.translations[lang].tipsList;
+      const tipsList_translated = translations[lang].tipsList;
       tipsList.forEach((li, index) => {
         if (index === 1) {
           li.innerHTML = tipsList_translated[index].replace('{shortcut}', `<span class="actual-shortcut">${shortcut}</span>`);
@@ -146,31 +156,33 @@ import('./translations.js').then(module => {
         }
       });
     }
-  });
-  
-  function showNotification(message, type) {
-    // Simple notification for popup
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      right: 10px;
-      background: ${type === 'success' ? '#44BB44' : '#FF4444'};
-      color: white;
-      padding: 8px;
-      border-radius: 4px;
-      font-size: 12px;
-      z-index: 9999;
-      text-align: center;
-    `;
-    notification.textContent = message;
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-      if (notification.parentNode) {
-        notification.remove();
-      }
-    }, 2000);
+  } catch (error) {
+    console.error('Error initializing popup:', error);
   }
 });
+
+function showNotification(message, type) {
+  // Simple notification for popup
+  const notification = document.createElement('div');
+  notification.style.cssText = `
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    background: ${type === 'success' ? '#44BB44' : '#FF4444'};
+    color: white;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 9999;
+    text-align: center;
+  `;
+  notification.textContent = message;
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.remove();
+    }
+  }, 2000);
+}

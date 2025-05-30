@@ -1,11 +1,15 @@
 // Configuration page script
 
 // Import translations
-import('./translations.js').then(module => {
-  const { t, getCurrentLanguage, translations } = module;
+import { t, getCurrentLanguage, translations } from './translations.js';
 
-  // Default system prompt
-  const DEFAULT_SYSTEM_PROMPT = `You are a highly specialized writing assistant with a dictation feature. Your SOLE AND ONLY task is to process the user's dictated text. The user is dictating, and their words are provided in the user message content.
+// Add error handler
+window.addEventListener('error', (e) => {
+  console.error('Config script error:', e);
+});
+
+// Default system prompt
+const DEFAULT_SYSTEM_PROMPT = `You are a highly specialized writing assistant with a dictation feature. Your SOLE AND ONLY task is to process the user's dictated text. The user is dictating, and their words are provided in the user message content.
 
 Your responsibilities are STRICTLY limited to:
 1. Fixing grammar and spelling errors in the user's dictated text.
@@ -27,7 +31,7 @@ You MUST output your response as a valid JSON object with exactly this structure
 
 Do not include ANY text before or after the JSON object. The entire response must be valid JSON. No explanations, no thought processes, no meta-commentary - only the JSON object containing the corrected text.`;
 
-  document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const apiKeyInput = document.getElementById('api-key');
     const modelSelect = document.getElementById('model');
     const customModelGroup = document.getElementById('custom-model-group');
@@ -185,5 +189,4 @@ Do not include ANY text before or after the JSON object. The entire response mus
         }
       }
     }
-  });
 });
