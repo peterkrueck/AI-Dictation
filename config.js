@@ -1,7 +1,11 @@
 // Configuration page script
 
-// Default system prompt
-const DEFAULT_SYSTEM_PROMPT = `You are a highly specialized writing assistant with a dictation feature. Your SOLE AND ONLY task is to process the user's dictated text. The user is dictating, and their words are provided in the user message content.
+// Import translations
+import('./translations.js').then(module => {
+  const { t, getCurrentLanguage, translations } = module;
+
+  // Default system prompt
+  const DEFAULT_SYSTEM_PROMPT = `You are a highly specialized writing assistant with a dictation feature. Your SOLE AND ONLY task is to process the user's dictated text. The user is dictating, and their words are provided in the user message content.
 
 Your responsibilities are STRICTLY limited to:
 1. Fixing grammar and spelling errors in the user's dictated text.
@@ -23,101 +27,163 @@ You MUST output your response as a valid JSON object with exactly this structure
 
 Do not include ANY text before or after the JSON object. The entire response must be valid JSON. No explanations, no thought processes, no meta-commentary - only the JSON object containing the corrected text.`;
 
-document.addEventListener('DOMContentLoaded', () => {
-  const apiKeyInput = document.getElementById('api-key');
-  const modelSelect = document.getElementById('model');
-  const customModelGroup = document.getElementById('custom-model-group');
-  const customModelInput = document.getElementById('custom-model');
-  const saveBtn = document.getElementById('save-btn');
-  const saveStatus = document.getElementById('save-status');
-  const systemPromptTextarea = document.getElementById('system-prompt');
-  const resetPromptBtn = document.getElementById('reset-prompt-btn');
-  
-  // Load existing settings
-  chrome.storage.sync.get(['groqApiKey', 'model', 'customModel', 'systemPrompt'], (result) => {
-    if (result.groqApiKey) {
-      apiKeyInput.value = result.groqApiKey;
-    }
-    if (result.model) {
-      if (result.model === 'custom' || 
-          (!Array.from(modelSelect.options).some(opt => opt.value === result.model) && result.model !== 'custom')) {
-        modelSelect.value = 'custom';
-        customModelGroup.style.display = 'block';
-        customModelInput.value = result.customModel || result.model;
-      } else {
-        modelSelect.value = result.model;
+  document.addEventListener('DOMContentLoaded', async () => {
+    const apiKeyInput = document.getElementById('api-key');
+    const modelSelect = document.getElementById('model');
+    const customModelGroup = document.getElementById('custom-model-group');
+    const customModelInput = document.getElementById('custom-model');
+    const saveBtn = document.getElementById('save-btn');
+    const saveStatus = document.getElementById('save-status');
+    const systemPromptTextarea = document.getElementById('system-prompt');
+    const resetPromptBtn = document.getElementById('reset-prompt-btn');
+    const languageSelect = document.getElementById('language');
+    
+    // Initialize UI with translations
+    await updateUITranslations();
+    
+    // Load existing settings
+    chrome.storage.sync.get(['groqApiKey', 'model', 'customModel', 'systemPrompt', 'language'], (result) => {
+      if (result.groqApiKey) {
+        apiKeyInput.value = result.groqApiKey;
       }
-    }
-    // Load system prompt or use default
-    systemPromptTextarea.value = result.systemPrompt || DEFAULT_SYSTEM_PROMPT;
-  });
-  
-  // Handle model selection change
-  modelSelect.addEventListener('change', () => {
-    if (modelSelect.value === 'custom') {
-      customModelGroup.style.display = 'block';
-    } else {
-      customModelGroup.style.display = 'none';
-    }
-  });
-  
-  // Handle reset prompt button
-  resetPromptBtn.addEventListener('click', () => {
-    systemPromptTextarea.value = DEFAULT_SYSTEM_PROMPT;
-    showStatus('System prompt reset to default', 'success');
-  });
-  
-  // Save settings
-  saveBtn.addEventListener('click', () => {
-    const apiKey = apiKeyInput.value.trim();
-    let model = modelSelect.value;
-    const customModel = customModelInput.value.trim();
-    const systemPrompt = systemPromptTextarea.value.trim();
-    
-    if (!apiKey) {
-      showStatus('Please enter an API key', 'error');
-      return;
-    }
-    
-    if (!apiKey.startsWith('gsk_')) {
-      showStatus('API key should start with gsk_', 'error');
-      return;
-    }
-    
-    if (model === 'custom') {
-      if (!customModel) {
-        showStatus('Please enter a custom model path', 'error');
-        return;
+      if (result.model) {
+        if (result.model === 'custom' || 
+            (!Array.from(modelSelect.options).some(opt => opt.value === result.model) && result.model !== 'custom')) {
+          modelSelect.value = 'custom';
+          customModelGroup.style.display = 'block';
+          customModelInput.value = result.customModel || result.model;
+        } else {
+          modelSelect.value = result.model;
+        }
       }
-      model = customModel;
-    }
+      // Load system prompt or use default
+      systemPromptTextarea.value = result.systemPrompt || DEFAULT_SYSTEM_PROMPT;
+      
+      // Load language preference
+      languageSelect.value = result.language || 'en';
+    });
     
-    if (!systemPrompt) {
-      showStatus('System prompt cannot be empty', 'error');
-      return;
-    }
-    
-    chrome.storage.sync.set({
-      groqApiKey: apiKey,
-      model: model,
-      customModel: customModel,
-      systemPrompt: systemPrompt
-    }, () => {
-      showStatus('Settings saved successfully!', 'success');
-      // Sync storage to ensure it's available on all devices
-      chrome.storage.sync.getBytesInUse(null, (bytesInUse) => {
-        console.log('Settings synced, using ' + bytesInUse + ' bytes');
+    // Handle language change
+    languageSelect.addEventListener('change', async () => {
+      const newLang = languageSelect.value;
+      chrome.storage.sync.set({ language: newLang }, async () => {
+        await updateUITranslations();
+        showStatus(await t('saveSuccess'), 'success');
       });
     });
-  });
-  
-  function showStatus(message, type) {
-    saveStatus.textContent = message;
-    saveStatus.className = `save-status ${type}`;
-    saveStatus.style.display = 'block';
     
-    setTimeout(() => {
-      saveStatus.style.display = 'none';
-    }, 3000);
-  }
+    // Handle model selection change
+    modelSelect.addEventListener('change', () => {
+      if (modelSelect.value === 'custom') {
+        customModelGroup.style.display = 'block';
+      } else {
+        customModelGroup.style.display = 'none';
+      }
+    });
+    
+    // Handle reset prompt button
+    resetPromptBtn.addEventListener('click', async () => {
+      systemPromptTextarea.value = DEFAULT_SYSTEM_PROMPT;
+      showStatus(await t('resetPromptSuccess'), 'success');
+    });
+    
+    // Save settings
+    saveBtn.addEventListener('click', async () => {
+      const apiKey = apiKeyInput.value.trim();
+      let model = modelSelect.value;
+      const customModel = customModelInput.value.trim();
+      const systemPrompt = systemPromptTextarea.value.trim();
+      
+      if (!apiKey) {
+        showStatus(await t('apiKeyRequired'), 'error');
+        return;
+      }
+      
+      if (!apiKey.startsWith('gsk_')) {
+        showStatus(await t('apiKeyInvalid'), 'error');
+        return;
+      }
+      
+      if (model === 'custom') {
+        if (!customModel) {
+          showStatus(await t('customModelRequired'), 'error');
+          return;
+        }
+        model = customModel;
+      }
+      
+      if (!systemPrompt) {
+        showStatus(await t('systemPromptEmpty'), 'error');
+        return;
+      }
+      
+      chrome.storage.sync.set({
+        groqApiKey: apiKey,
+        model: model,
+        customModel: customModel,
+        systemPrompt: systemPrompt
+      }, async () => {
+        showStatus(await t('saveSuccess'), 'success');
+        // Sync storage to ensure it's available on all devices
+        chrome.storage.sync.getBytesInUse(null, (bytesInUse) => {
+          console.log('Settings synced, using ' + bytesInUse + ' bytes');
+        });
+      });
+    });
+    
+    function showStatus(message, type) {
+      saveStatus.textContent = message;
+      saveStatus.className = `save-status ${type}`;
+      saveStatus.style.display = 'block';
+      
+      setTimeout(() => {
+        saveStatus.style.display = 'none';
+      }, 3000);
+    }
+    
+    async function updateUITranslations() {
+      const lang = await getCurrentLanguage();
+      
+      // Update all elements with data-i18n attribute
+      document.querySelectorAll('[data-i18n]').forEach(async element => {
+        const key = element.getAttribute('data-i18n');
+        element.textContent = await t(key);
+      });
+      
+      // Update placeholders
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(async element => {
+        const key = element.getAttribute('data-i18n-placeholder');
+        element.placeholder = await t(key);
+      });
+      
+      // Update lists
+      document.querySelectorAll('[data-i18n-list]').forEach(async element => {
+        const key = element.getAttribute('data-i18n-list');
+        const items = translations[lang][key];
+        if (items && Array.isArray(items)) {
+          const listItems = element.querySelectorAll('li');
+          items.forEach((text, index) => {
+            if (listItems[index]) {
+              // Special handling for howToUseSteps with placeholder
+              if (key === 'howToUseSteps') {
+                listItems[index].innerHTML = text.replace('{shortcut}', '<strong>Ctrl+Shift+1</strong>');
+              } else {
+                listItems[index].innerHTML = text;
+              }
+            }
+          });
+        }
+      });
+      
+      // Update special elements with nested spans
+      const apiKeyHelp = document.querySelector('[data-i18n="apiKeyHelp"]');
+      if (apiKeyHelp) {
+        const link = apiKeyHelp.nextElementSibling;
+        apiKeyHelp.textContent = await t('apiKeyHelp') + ' ';
+        if (link) {
+          apiKeyHelp.parentNode.insertBefore(link, apiKeyHelp.nextSibling);
+        }
+      }
+    }
+  });
 });

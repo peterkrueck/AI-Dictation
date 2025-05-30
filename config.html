@@ -7,19 +7,32 @@
 </head>
 <body>
   <div class="config-container">
-    <h1>🎤 AI Voice Dictation Settings</h1>
+    <h1 data-i18n="settingsTitle">🎤 AI Voice Dictation Settings</h1>
     
     <div class="config-section">
-      <h2>Groq API Configuration</h2>
+      <h2 data-i18n="languageTitle">Language Settings</h2>
       
       <div class="form-group">
-        <label for="api-key">Groq API Key:</label>
-        <input type="password" id="api-key" placeholder="gsk_..." />
-        <small>Get your API key from <a href="https://console.groq.com" target="_blank">console.groq.com</a></small>
+        <label for="language" data-i18n="languageLabel">Interface Language:</label>
+        <select id="language">
+          <option value="en">English</option>
+          <option value="de">Deutsch</option>
+        </select>
+        <small data-i18n="languageHelp">Choose your preferred language for the extension interface</small>
+      </div>
+    </div>
+    
+    <div class="config-section">
+      <h2 data-i18n="apiConfigTitle">Groq API Configuration</h2>
+      
+      <div class="form-group">
+        <label for="api-key" data-i18n="apiKeyLabel">Groq API Key:</label>
+        <input type="password" id="api-key" placeholder="gsk_..." data-i18n-placeholder="apiKeyPlaceholder" />
+        <small><span data-i18n="apiKeyHelp">Get your API key from</span> <a href="https://console.groq.com" target="_blank">console.groq.com</a></small>
       </div>
       
       <div class="form-group">
-        <label for="model">LLM Model:</label>
+        <label for="model" data-i18n="modelLabel">LLM Model:</label>
         <select id="model">
           <option value="meta-llama/Llama-4-Scout-17B-16E-Instruct">Llama 4 Scout 17B (Recommended)</option>
           <option value="meta-llama/llama-4-maverick-17b-128e-instruct">Llama 4 Maverick 17B 128E</option>
@@ -31,51 +44,51 @@
           <option value="gemma2-9b-it">Gemma 2 9B</option>
           <option value="custom">Custom Model Path</option>
         </select>
-        <small>Llama 4 Scout provides the best balance of speed and quality</small>
+        <small data-i18n="modelHelp">Llama 4 Scout provides the best balance of speed and quality</small>
       </div>
       
       <div class="form-group" id="custom-model-group" style="display: none;">
-        <label for="custom-model">Custom Model Path:</label>
-        <input type="text" id="custom-model" placeholder="e.g., meta-llama/your-custom-model" />
-        <small>Enter the full model path from Groq's model list</small>
+        <label for="custom-model" data-i18n="customModelLabel">Custom Model Path:</label>
+        <input type="text" id="custom-model" placeholder="e.g., meta-llama/your-custom-model" data-i18n-placeholder="customModelPlaceholder" />
+        <small data-i18n="customModelHelp">Enter the full model path from Groq's model list</small>
       </div>
       
-      <button id="save-btn" class="save-btn">Save Settings</button>
+      <button id="save-btn" class="save-btn" data-i18n="saveButton">Save Settings</button>
       <div id="save-status" class="save-status"></div>
     </div>
     
     <div class="config-section">
-      <h2>AI System Prompt Customization</h2>
+      <h2 data-i18n="systemPromptTitle">AI System Prompt Customization</h2>
       
       <div class="form-group">
-        <label for="system-prompt">Custom System Prompt:</label>
-        <textarea id="system-prompt" rows="8" placeholder="Enter your custom system prompt instructions for the AI..."></textarea>
-        <small>Customize how the AI formats and processes your dictated text. Leave blank to use default behavior.</small>
+        <label for="system-prompt" data-i18n="systemPromptLabel">Custom System Prompt:</label>
+        <textarea id="system-prompt" rows="8" placeholder="Enter your custom system prompt instructions for the AI..." data-i18n-placeholder="systemPromptPlaceholder"></textarea>
+        <small data-i18n="systemPromptHelp">Customize how the AI formats and processes your dictated text. Leave blank to use default behavior.</small>
       </div>
       
       <div class="form-group">
-        <button id="reset-prompt-btn" class="reset-btn">Reset to Default</button>
-        <small>Click to restore the default system prompt used by the extension</small>
+        <button id="reset-prompt-btn" class="reset-btn" data-i18n="resetPromptButton">Reset to Default</button>
+        <small data-i18n="resetPromptHelp">Click to restore the default system prompt used by the extension</small>
       </div>
     </div>
     
     <div class="config-section">
-      <h2>Keyboard Shortcut</h2>
-      <p>Current shortcut: <strong>Ctrl+Shift+1</strong> (on Chromebook)</p>
-      <p><small>Note: This matches your Mac's Cmd+Shift+1, but uses Ctrl on Chromebook</small></p>
-      <p>To change: Go to chrome://extensions/shortcuts</p>
-      <p><small>💡 Tip: While recording, press Enter or Esc to stop</small></p>
+      <h2 data-i18n="keyboardShortcutTitle">Keyboard Shortcut</h2>
+      <p><span data-i18n="currentShortcut">Current shortcut:</span> <strong>Ctrl+Shift+1</strong> (on Chromebook)</p>
+      <p><small data-i18n="shortcutNote">Note: This matches your Mac's Cmd+Shift+1, but uses Ctrl on Chromebook</small></p>
+      <p data-i18n="shortcutChange">To change: Go to chrome://extensions/shortcuts</p>
+      <p><small data-i18n="shortcutTip">💡 Tip: While recording, press Enter or Esc to stop</small></p>
     </div>
     
     <div class="config-section">
-      <h2>Sync Across Devices</h2>
-      <p>✅ This extension automatically syncs settings across all Chromebooks logged into your Google account.</p>
-      <p>Your API key and preferences will be available on all your devices!</p>
+      <h2 data-i18n="syncTitle">Sync Across Devices</h2>
+      <p data-i18n="syncDescription">✅ This extension automatically syncs settings across all Chromebooks logged into your Google account.</p>
+      <p data-i18n="syncInfo">Your API key and preferences will be available on all your devices!</p>
     </div>
     
     <div class="config-section">
-      <h2>How to Use</h2>
-      <ol>
+      <h2 data-i18n="howToUseTitle">How to Use</h2>
+      <ol data-i18n-list="howToUseSteps">
         <li>Click in any text field on a website</li>
         <li>Press <strong>Ctrl+Shift+1</strong> (or click extension icon)</li>
         <li>Speak your message clearly</li>
@@ -83,8 +96,8 @@
         <li>Your formatted text will appear automatically</li>
       </ol>
       
-      <h3>New Features:</h3>
-      <ul>
+      <h3 data-i18n="newFeaturesTitle">New Features:</h3>
+      <ul data-i18n-list="newFeatures">
         <li>✨ <strong>Filler word removal</strong> - "um", "uh", duplications are automatically removed</li>
         <li>📝 <strong>Smart formatting</strong> - Text is nicely formatted based on context</li>
         <li>⌨️ <strong>Quick stop</strong> - Press Enter or Esc while recording</li>
@@ -93,9 +106,9 @@
     </div>
     
     <div class="config-section">
-      <h2>Supported Sites</h2>
-      <p>The extension adapts its writing style for:</p>
-      <ul>
+      <h2 data-i18n="supportedSitesTitle">Supported Sites</h2>
+      <p data-i18n="supportedSitesDescription">The extension adapts its writing style for:</p>
+      <ul data-i18n-list="supportedSitesList">
         <li><strong>Email</strong> - Gmail: Professional, formal tone</li>
         <li><strong>Chat</strong> - Slack, Discord: Casual, friendly style</li>
         <li><strong>Social</strong> - LinkedIn, Twitter/X, Facebook, Reddit: Platform-appropriate</li>
@@ -108,14 +121,15 @@
     </div>
     
     <div class="config-section">
-      <h2>About</h2>
-      <p><strong>Version:</strong> 1.0</p>
-      <p><strong>Model:</strong> Using Groq's latest Llama 4 Scout 17B model</p>
-      <p><strong>Privacy:</strong> All processing is done via direct API calls. No data is stored.</p>
-      <p><small>Made with ❤️ for Dad's Chromebook</small></p>
+      <h2 data-i18n="aboutTitle">About</h2>
+      <p><strong data-i18n="version">Version:</strong> 1.0</p>
+      <p><strong data-i18n="model">Model:</strong> <span data-i18n="modelDescription">Using Groq's latest Llama 4 Scout 17B model</span></p>
+      <p><strong data-i18n="privacy">Privacy:</strong> <span data-i18n="privacyDescription">All processing is done via direct API calls. No data is stored.</span></p>
+      <p><small data-i18n="madeWith">Made with ❤️ for Dad's Chromebook</small></p>
     </div>
   </div>
   
-  <script src="config.js"></script>
+  <script type="module" src="config.js"></script>
+  <script src="translations.js"></script>
 </body>
 </html>

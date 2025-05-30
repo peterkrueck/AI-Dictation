@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(zip:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(mkdir:*)"
     ]
   },
   "enableAllProjectMcpServers": false

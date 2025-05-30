@@ -1,0 +1,10 @@
+{
+  "extensionName": {
+    "message": "KI-Sprachdiktat",
+    "description": "Name der Erweiterung"
+  },
+  "extensionDescription": {
+    "message": "Intelligentes Sprachdiktat mit Groq KI",
+    "description": "Beschreibung der Erweiterung"
+  }
+}

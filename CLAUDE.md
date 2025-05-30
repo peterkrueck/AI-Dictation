@@ -32,18 +32,20 @@ This is a static Chrome extension project with no build process required. To dev
 
 3. **Package for distribution**:
    ```bash
-   zip -r voice-dictation-extension.zip manifest.json background.js offscreen.html offscreen.js content.js popup.html popup.js config.html config.js styles.css -x ".*" -x "__MACOSX" -x "*.md"
+   zip -r voice-dictation-extension.zip manifest.json background.js offscreen.html offscreen.js content.js popup.html popup.js config.html config.js styles.css translations.js _locales -x ".*" -x "__MACOSX" -x "*.md"
    ```
 
 ## Project Structure
 
-- `manifest.json` - Chrome extension manifest (v3) with offscreen permission
+- `manifest.json` - Chrome extension manifest (v3) with offscreen permission and locale support
 - `background.js` - Service worker managing offscreen document and API calls
 - `offscreen.html/js` - Offscreen document for audio recording via MediaRecorder
-- `content.js` - Content script for UI and text insertion (supports Google search)
-- `popup.html/js` - Extension popup interface
-- `config.html/js` - Settings page with custom model path and system prompt support
+- `content.js` - Content script for UI and text insertion (supports Google search) with multilingual support
+- `popup.html/js` - Extension popup interface with dynamic language switching
+- `config.html/js` - Settings page with custom model path, system prompt support, and language selector
 - `styles.css` - Shared styles for popup and config pages
+- `translations.js` - Centralized translation system for English and German
+- `_locales/` - Chrome locale files for extension name/description (en, de)
 - `voice-dictation-extension.zip` - Packaged extension ready for distribution
 
 ## Key Implementation Details
@@ -56,6 +58,7 @@ This is a static Chrome extension project with no build process required. To dev
 - **Offscreen Document**: Uses Chrome's offscreen API to handle audio recording in service worker context
 - **Context-Aware Formatting**: Detects the current website/app and adjusts writing style accordingly (e.g., formal for Gmail, casual for Slack, works on Google.com)
 - **Chrome Storage Sync**: Settings automatically sync across devices using `chrome.storage.sync`
+- **Multilingual Support**: Full German and English language support with automatic language detection and synced preferences
 - **Keyboard Shortcut**: Default is Ctrl+Shift+1, configurable via chrome://extensions/shortcuts - now with automatic content script injection
 - **Extended Token Support**: Increased max tokens from 500 to 6000 for longer dictations
 - **Force Mode**: New toggle that allows dictation anywhere, with clipboard fallback when no text field is available
@@ -74,6 +77,9 @@ Manual testing is required for Chrome extensions:
 7. Test JSON response parsing with command-like dictations (e.g., "Can you help me schedule a meeting?")
 8. Test with Qwen QWQ 32B model option
 9. Verify longer dictations work with increased token limit
+10. Test language switching between English and German
+11. Verify all UI elements update correctly when switching languages
+12. Ensure language preference syncs across devices
 
 ## Recent Fixes
 
@@ -101,6 +107,11 @@ Manual testing is required for Chrome extensions:
   - **Extended recording time** - Increased from 30 to 60 seconds with countdown warning
   - **Always-visible debug button** - No more triple-clicking needed to access debug logs
   - **Improved text field detection** - Better support for finding and tracking text input elements
+- **Version 1.2 Updates**:
+  - **Multilingual Support** - Full German and English language support
+  - **Language Selector** - New language dropdown in settings
+  - **Synced Language Preference** - Language choice syncs across all devices
+  - **Localized Extension Metadata** - Extension name and description support both languages
 
 ## Debugging Features
 

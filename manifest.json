@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "AI Voice Dictation",
+  "name": "__MSG_extensionName__",
   "version": "1.1",
-  "description": "Intelligent voice dictation with Groq AI",
+  "description": "__MSG_extensionDescription__",
+  "default_locale": "en",
   "minimum_chrome_version": "116",
   "permissions": [
     "activeTab",

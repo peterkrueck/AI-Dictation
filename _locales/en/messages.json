@@ -1,0 +1,10 @@
+{
+  "extensionName": {
+    "message": "AI Voice Dictation",
+    "description": "Name of the extension"
+  },
+  "extensionDescription": {
+    "message": "Intelligent voice dictation with Groq AI",
+    "description": "Description of the extension"
+  }
+}

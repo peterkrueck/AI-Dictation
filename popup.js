@@ -1,130 +1,176 @@
 // Popup script handles UI interactions
 
-document.addEventListener('DOMContentLoaded', () => {
-  const dictateBtn = document.getElementById('dictate-btn');
-  const settingsLink = document.getElementById('settings-link');
-  const statusText = document.getElementById('status-text');
-  const statusDot = document.querySelector('.status-dot');
-  const debugBtn = document.getElementById('debug-btn');
-  const forceModeToggle = document.getElementById('force-mode-toggle');
+// Import translations
+import('./translations.js').then(module => {
+  const { t, getCurrentLanguage } = module;
   
-  // Check if API key is set
-  chrome.storage.sync.get(['groqApiKey', 'forceDictation'], (result) => {
-    if (!result.groqApiKey) {
-      statusText.textContent = 'API key not set';
-      statusDot.style.backgroundColor = '#FF4444';
-      dictateBtn.disabled = true;
-    } else {
-      statusText.textContent = 'Ready';
-      statusDot.style.backgroundColor = '#44BB44';
-    }
+  document.addEventListener('DOMContentLoaded', async () => {
+    const dictateBtn = document.getElementById('dictate-btn');
+    const settingsLink = document.getElementById('settings-link');
+    const statusText = document.getElementById('status-text');
+    const statusDot = document.querySelector('.status-dot');
+    const debugBtn = document.getElementById('debug-btn');
+    const forceModeToggle = document.getElementById('force-mode-toggle');
     
-    // Set force mode toggle state
-    forceModeToggle.checked = result.forceDictation || false;
-  });
-  
-  // Display actual keyboard shortcut
-  chrome.commands.getAll((commands) => {
-    const dictationCommand = commands.find(cmd => cmd.name === 'start-dictation');
-    if (dictationCommand && dictationCommand.shortcut) {
-      document.querySelectorAll('.shortcut, .actual-shortcut').forEach(el => {
-        el.textContent = dictationCommand.shortcut;
-      });
-    } else {
-      document.querySelectorAll('.shortcut, .actual-shortcut').forEach(el => {
-        el.textContent = 'Not set';
-      });
-      // Add help text
-      const helpText = document.createElement('small');
-      helpText.style.color = '#666';
-      helpText.textContent = ' (Set in chrome://extensions/shortcuts)';
-      document.querySelector('.actual-shortcut').after(helpText);
-    }
-  });
-  
-  // Handle force mode toggle
-  forceModeToggle.addEventListener('change', () => {
-    chrome.storage.sync.set({ forceDictation: forceModeToggle.checked }, () => {
-      showNotification(
-        forceModeToggle.checked 
-          ? 'Force Mode enabled - dictate anywhere!' 
-          : 'Force Mode disabled', 
-        'success'
-      );
-    });
-  });
-  
-  // Handle debug button (always visible)
-  debugBtn.addEventListener('click', () => {
-    chrome.runtime.sendMessage({ action: 'getDebugLogs' }, (logs) => {
-      console.log('=== Voice Dictation Debug Logs ===');
-      console.log('Extension Version: 1.1');
-      console.log('Time:', new Date().toISOString());
-      console.log('Total Logs:', logs ? logs.length : 0);
-      console.log('');
-      
-      if (logs && logs.length > 0) {
-        logs.forEach(log => {
-          console.log(`[${log.timestamp}] [${log.context}] ${log.message}`, 
-            log.data ? JSON.parse(log.data) : '');
-        });
-        
-        // Copy to clipboard
-        const debugText = logs.map(log => 
-          `[${log.timestamp}] [${log.context}] ${log.message} ${log.data || ''}`
-        ).join('\n');
-        
-        navigator.clipboard.writeText(debugText).then(() => {
-          showNotification('Debug logs copied to clipboard & console (F12)', 'success');
-        }).catch(() => {
-          showNotification('Debug logs in console (F12)', 'success');
-        });
+    // Update UI with translations
+    await updateUITranslations();
+    
+    // Check if API key is set
+    chrome.storage.sync.get(['groqApiKey', 'forceDictation'], async (result) => {
+      if (!result.groqApiKey) {
+        statusText.textContent = await t('statusApiKeyNotSet');
+        statusDot.style.backgroundColor = '#FF4444';
+        dictateBtn.disabled = true;
       } else {
-        console.log('No debug logs found');
+        statusText.textContent = await t('statusReady');
+        statusDot.style.backgroundColor = '#44BB44';
       }
       
-      console.log('=== End Debug Logs ===');
+      // Set force mode toggle state
+      forceModeToggle.checked = result.forceDictation || false;
     });
-  });
-  
-  // Handle dictation button click
-  dictateBtn.addEventListener('click', () => {
-    // Get active tab and start dictation
-    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-      chrome.tabs.sendMessage(tabs[0].id, {action: 'startDictation'});
-      window.close();
+    
+    // Display actual keyboard shortcut
+    chrome.commands.getAll(async (commands) => {
+      const dictationCommand = commands.find(cmd => cmd.name === 'start-dictation');
+      if (dictationCommand && dictationCommand.shortcut) {
+        document.querySelectorAll('.shortcut, .actual-shortcut').forEach(el => {
+          el.textContent = dictationCommand.shortcut;
+        });
+      } else {
+        document.querySelectorAll('.shortcut, .actual-shortcut').forEach(async el => {
+          el.textContent = await t('shortcutNotSet');
+        });
+        // Add help text
+        const helpText = document.createElement('small');
+        helpText.style.color = '#666';
+        helpText.textContent = ' ' + await t('shortcutHelpText');
+        document.querySelector('.actual-shortcut').after(helpText);
+      }
     });
-  });
-  
-  // Handle settings link
-  settingsLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    chrome.runtime.openOptionsPage();
-  });
-});
-
-function showNotification(message, type) {
-  // Simple notification for popup
-  const notification = document.createElement('div');
-  notification.style.cssText = `
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    right: 10px;
-    background: ${type === 'success' ? '#44BB44' : '#FF4444'};
-    color: white;
-    padding: 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    z-index: 9999;
-    text-align: center;
-  `;
-  notification.textContent = message;
-  document.body.appendChild(notification);
-  
-  setTimeout(() => {
-    if (notification.parentNode) {
-      notification.remove();
+    
+    // Handle force mode toggle
+    forceModeToggle.addEventListener('change', async () => {
+      chrome.storage.sync.set({ forceDictation: forceModeToggle.checked }, async () => {
+        showNotification(
+          forceModeToggle.checked 
+            ? await t('forceModeEnabled')
+            : await t('forceModeDisabled'), 
+          'success'
+        );
+      });
+    });
+    
+    // Handle debug button (always visible)
+    debugBtn.addEventListener('click', async () => {
+      chrome.runtime.sendMessage({ action: 'getDebugLogs' }, async (logs) => {
+        console.log('=== Voice Dictation Debug Logs ===');
+        console.log('Extension Version: 1.1');
+        console.log('Time:', new Date().toISOString());
+        console.log('Total Logs:', logs ? logs.length : 0);
+        console.log('');
+        
+        if (logs && logs.length > 0) {
+          logs.forEach(log => {
+            console.log(`[${log.timestamp}] [${log.context}] ${log.message}`, 
+              log.data ? JSON.parse(log.data) : '');
+          });
+          
+          // Copy to clipboard
+          const debugText = logs.map(log => 
+            `[${log.timestamp}] [${log.context}] ${log.message} ${log.data || ''}`
+          ).join('\n');
+          
+          navigator.clipboard.writeText(debugText).then(async () => {
+            showNotification(await t('debugLogsCopied'), 'success');
+          }).catch(async () => {
+            showNotification(await t('debugLogsInConsole'), 'success');
+          });
+        } else {
+          console.log('No debug logs found');
+        }
+        
+        console.log('=== End Debug Logs ===');
+      });
+    });
+    
+    // Handle dictation button click
+    dictateBtn.addEventListener('click', () => {
+      // Get active tab and start dictation
+      chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+        chrome.tabs.sendMessage(tabs[0].id, {action: 'startDictation'});
+        window.close();
+      });
+    });
+    
+    // Handle settings link
+    settingsLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      chrome.runtime.openOptionsPage();
+    });
+    
+    async function updateUITranslations() {
+      // Update static UI elements
+      document.querySelector('.popup-container h2').textContent = await t('extensionTitle');
+      document.querySelector('.force-mode-container span').textContent = await t('forceMode');
+      document.querySelector('.force-mode-container small').textContent = await t('forceModeDescription');
+      
+      // Update button text while preserving shortcut span
+      const btnText = await t('startDictation');
+      const shortcutSpan = dictateBtn.querySelector('.shortcut');
+      dictateBtn.innerHTML = btnText + ' ';
+      dictateBtn.appendChild(shortcutSpan);
+      
+      document.querySelector('#settings-link').textContent = await t('settingsLink');
+      document.querySelector('#debug-btn').textContent = await t('debugButton');
+      
+      // Update tips
+      document.querySelector('.tips p').innerHTML = '<strong>' + await t('tips') + '</strong>';
+      const tipsList = document.querySelectorAll('.tips li');
+      const shortcut = document.querySelector('.actual-shortcut').textContent || 'Ctrl+Shift+1';
+      const tipsTexts = [
+        await t('tipsList', { index: 0 }),
+        await t('tipsList', { index: 1 }).replace('{shortcut}', `<span class="actual-shortcut">${shortcut}</span>`),
+        await t('tipsList', { index: 2 }),
+        await t('tipsList', { index: 3 })
+      ];
+      
+      // Handle array translations
+      const lang = await getCurrentLanguage();
+      const tipsList_translated = module.translations[lang].tipsList;
+      tipsList.forEach((li, index) => {
+        if (index === 1) {
+          li.innerHTML = tipsList_translated[index].replace('{shortcut}', `<span class="actual-shortcut">${shortcut}</span>`);
+        } else {
+          li.textContent = tipsList_translated[index];
+        }
+      });
     }
-  }, 2000);
-}
+  });
+  
+  function showNotification(message, type) {
+    // Simple notification for popup
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      background: ${type === 'success' ? '#44BB44' : '#FF4444'};
+      color: white;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      z-index: 9999;
+      text-align: center;
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.remove();
+      }
+    }, 2000);
+  }
+});

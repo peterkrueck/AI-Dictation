@@ -1,6 +1,7 @@
 // Content script with force mode and improved detection
 let recordingIndicator = null;
 let forceMode = false;
+let currentLanguage = 'en';
 
 // Debug mode
 const DEBUG = true;
@@ -17,17 +18,65 @@ function debugLog(message, data = null) {
 
 debugLog('Content script loaded on', window.location.href);
 
-// Load force mode preference
-chrome.storage.sync.get(['forceDictation'], (result) => {
+// Load translations inline since content scripts can't use dynamic imports
+const translations = {
+  en: {
+    recordingIndicator: "Recording... Press Enter/Esc or click to stop",
+    recordingTimeRemaining: "{seconds}s remaining",
+    noTextFieldError: "Please click in a text field first, or enable \"Force Mode\" in the extension popup to dictate anywhere.",
+    forceModeInfo: "Force Mode: Text will be copied to clipboard",
+    textCopiedSuccess: "✅ Text copied to clipboard! Press Ctrl+V to paste.",
+    clipboardError: "Could not copy to clipboard. Text: {text}",
+    directInsertError: "Could not insert directly. Text copied to clipboard - press Ctrl+V to paste.",
+    insertError: "Could not insert text",
+    extensionError: "Extension error: {error}",
+    error: "Error: {error}"
+  },
+  de: {
+    recordingIndicator: "Aufnahme... Enter/Esc drücken oder klicken zum Beenden",
+    recordingTimeRemaining: "Noch {seconds}s",
+    noTextFieldError: "Bitte erst in ein Textfeld klicken oder \"Überall-Modus\" im Erweiterungs-Popup aktivieren, um überall zu diktieren.",
+    forceModeInfo: "Überall-Modus: Text wird in Zwischenablage kopiert",
+    textCopiedSuccess: "✅ Text in Zwischenablage kopiert! Strg+V zum Einfügen drücken.",
+    clipboardError: "Konnte nicht in Zwischenablage kopieren. Text: {text}",
+    directInsertError: "Konnte nicht direkt einfügen. Text in Zwischenablage kopiert - Strg+V zum Einfügen drücken.",
+    insertError: "Konnte Text nicht einfügen",
+    extensionError: "Erweiterungsfehler: {error}",
+    error: "Fehler: {error}"
+  }
+};
+
+// Helper function to get translation
+function t(key, replacements = {}) {
+  let text = translations[currentLanguage]?.[key] || translations.en[key] || key;
+  
+  // Replace placeholders
+  Object.keys(replacements).forEach(placeholder => {
+    text = text.replace(new RegExp(`{${placeholder}}`, 'g'), replacements[placeholder]);
+  });
+  
+  return text;
+}
+
+// Load force mode and language preferences
+chrome.storage.sync.get(['forceDictation', 'language'], (result) => {
   forceMode = result.forceDictation || false;
+  currentLanguage = result.language || 'en';
   debugLog('Force mode loaded:', forceMode);
+  debugLog('Language loaded:', currentLanguage);
 });
 
 // Listen for storage changes
 chrome.storage.onChanged.addListener((changes, namespace) => {
-  if (namespace === 'sync' && changes.forceDictation) {
-    forceMode = changes.forceDictation.newValue;
-    debugLog('Force mode updated:', forceMode);
+  if (namespace === 'sync') {
+    if (changes.forceDictation) {
+      forceMode = changes.forceDictation.newValue;
+      debugLog('Force mode updated:', forceMode);
+    }
+    if (changes.language) {
+      currentLanguage = changes.language.newValue;
+      debugLog('Language updated:', currentLanguage);
+    }
   }
 });
 
@@ -113,10 +162,7 @@ function startDictation() {
   let targetElement = findBestTextTarget();
   
   if (!targetElement && !forceMode) {
-    showNotification(
-      'Please click in a text field first, or enable "Force Mode" in the extension popup to dictate anywhere.', 
-      'error'
-    );
+    showNotification(t('noTextFieldError'), 'error');
     return;
   }
   
@@ -124,7 +170,7 @@ function startDictation() {
   window.voiceDictationTarget = targetElement;
   
   if (!targetElement && forceMode) {
-    showNotification('Force Mode: Text will be copied to clipboard', 'info');
+    showNotification(t('forceModeInfo'), 'info');
   }
   
   // Show recording indicator
@@ -141,7 +187,7 @@ function startDictation() {
     if (chrome.runtime.lastError) {
       const error = chrome.runtime.lastError.message;
       debugLog('Runtime error', error);
-      showNotification('Extension error: ' + error, 'error');
+      showNotification(t('extensionError', { error }), 'error');
       if (response?.debugInfo) {
         console.error('Debug info:', response.debugInfo);
       }
@@ -153,7 +199,7 @@ function startDictation() {
       insertText(target, response.text);
     } else if (response) {
       const errorMsg = response.error || 'Unknown error';
-      showNotification('Error: ' + errorMsg, 'error');
+      showNotification(t('error', { error: errorMsg }), 'error');
       debugLog('Error from background', errorMsg);
       
       if (response.debugInfo) {
@@ -211,11 +257,11 @@ function insertText(element, text) {
     // Clipboard fallback for force mode
     debugLog('No element found, using clipboard fallback');
     navigator.clipboard.writeText(text).then(() => {
-      showNotification('✅ Text copied to clipboard! Press Ctrl+V to paste.', 'success');
+      showNotification(t('textCopiedSuccess'), 'success');
       debugLog('Text copied to clipboard successfully');
     }).catch((err) => {
       debugLog('Clipboard write failed:', err);
-      showNotification('Could not copy to clipboard. Text: ' + text, 'error');
+      showNotification(t('clipboardError', { text }), 'error');
     });
     return;
   }
@@ -316,9 +362,9 @@ function insertText(element, text) {
   } catch (e) {
     // Last resort: Copy to clipboard
     navigator.clipboard.writeText(text).then(() => {
-      showNotification('Could not insert directly. Text copied to clipboard - press Ctrl+V to paste.', 'info');
+      showNotification(t('directInsertError'), 'info');
     }).catch(() => {
-      showNotification('Could not insert text', 'error');
+      showNotification(t('insertError'), 'error');
     });
   }
 }
@@ -328,7 +374,7 @@ function showRecordingIndicator() {
   recordingIndicator.id = 'voice-dictation-indicator';
   recordingIndicator.innerHTML = `
     <div class="recording-dot"></div>
-    <span>Recording... Press Enter/Esc or click to stop</span>
+    <span>${t('recordingIndicator')}</span>
   `;
   recordingIndicator.style.cssText = `
     position: fixed;
@@ -421,7 +467,9 @@ function hideRecordingIndicator() {
 function updateRecordingIndicator(secondsRemaining) {
   if (recordingIndicator) {
     const span = recordingIndicator.querySelector('span');
-    span.innerHTML = `Recording... <strong style="color: yellow;">${secondsRemaining}s remaining</strong> (Press Enter/Esc to stop)`;
+    const baseText = t('recordingIndicator');
+    const timeText = t('recordingTimeRemaining', { seconds: secondsRemaining });
+    span.innerHTML = `${baseText.replace('...', '')}... <strong style="color: yellow;">${timeText}</strong>`;
     
     if (secondsRemaining <= 5) {
       recordingIndicator.style.background = '#FF6B6B';
