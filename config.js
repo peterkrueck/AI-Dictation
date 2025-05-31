@@ -6,7 +6,16 @@ import { t, getCurrentLanguage, translations } from './translations.js';
 // Add error handler
 window.addEventListener('error', (e) => {
   console.error('Config script error:', e);
+  console.error('Error details:', e.message, e.filename, e.lineno, e.colno);
 });
+
+// Add unhandled rejection handler for promise errors
+window.addEventListener('unhandledrejection', (e) => {
+  console.error('Unhandled promise rejection:', e.reason);
+});
+
+console.log('Config script loaded');
+console.log('Translations module loaded:', typeof translations);
 
 // Default system prompt
 const DEFAULT_SYSTEM_PROMPT = `You are a highly specialized writing assistant with a dictation feature. Your SOLE AND ONLY task is to process the user's dictated text. The user is dictating, and their words are provided in the user message content.
@@ -32,71 +41,86 @@ You MUST output your response as a valid JSON object with exactly this structure
 Do not include ANY text before or after the JSON object. The entire response must be valid JSON. No explanations, no thought processes, no meta-commentary - only the JSON object containing the corrected text.`;
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const apiKeyInput = document.getElementById('api-key');
-    const modelSelect = document.getElementById('model');
-    const customModelGroup = document.getElementById('custom-model-group');
-    const customModelInput = document.getElementById('custom-model');
-    const saveBtn = document.getElementById('save-btn');
-    const saveStatus = document.getElementById('save-status');
-    const systemPromptTextarea = document.getElementById('system-prompt');
-    const resetPromptBtn = document.getElementById('reset-prompt-btn');
-    const languageSelect = document.getElementById('language');
+    console.log('Config page loaded');
     
-    // Initialize UI with translations
-    await updateUITranslations();
-    
-    // Load existing settings
-    chrome.storage.sync.get(['groqApiKey', 'model', 'customModel', 'systemPrompt', 'language'], (result) => {
-      if (result.groqApiKey) {
-        apiKeyInput.value = result.groqApiKey;
-      }
-      if (result.model) {
-        if (result.model === 'custom' || 
-            (!Array.from(modelSelect.options).some(opt => opt.value === result.model) && result.model !== 'custom')) {
-          modelSelect.value = 'custom';
-          customModelGroup.style.display = 'block';
-          customModelInput.value = result.customModel || result.model;
-        } else {
-          modelSelect.value = result.model;
+    try {
+        const elements = {
+            apiKeyInput: document.getElementById('api-key'),
+            modelSelect: document.getElementById('model'),
+            customModelGroup: document.getElementById('custom-model-group'),
+            customModelInput: document.getElementById('custom-model'),
+            saveBtn: document.getElementById('save-btn'),
+            saveStatus: document.getElementById('save-status'),
+            systemPromptTextarea: document.getElementById('system-prompt'),
+            resetPromptBtn: document.getElementById('reset-prompt-btn'),
+            languageSelect: document.getElementById('language')
+        };
+        
+        // Check if all elements exist
+        const missingElements = Object.entries(elements)
+            .filter(([name, el]) => !el)
+            .map(([name]) => name);
+        
+        if (missingElements.length > 0) {
+            console.error('Missing elements:', missingElements);
+            return;
         }
-      }
-      // Load system prompt or use default
-      systemPromptTextarea.value = result.systemPrompt || DEFAULT_SYSTEM_PROMPT;
-      
-      // Load language preference
-      languageSelect.value = result.language || 'en';
-    });
-    
-    // Handle language change
-    languageSelect.addEventListener('change', async () => {
-      const newLang = languageSelect.value;
-      chrome.storage.sync.set({ language: newLang }, async () => {
+        
+        // Initialize UI with translations
         await updateUITranslations();
-        showStatus(await t('saveSuccess'), 'success');
-      });
-    });
     
-    // Handle model selection change
-    modelSelect.addEventListener('change', () => {
-      if (modelSelect.value === 'custom') {
-        customModelGroup.style.display = 'block';
-      } else {
-        customModelGroup.style.display = 'none';
-      }
-    });
+        // Load existing settings
+        chrome.storage.sync.get(['groqApiKey', 'model', 'customModel', 'systemPrompt', 'language'], (result) => {
+            if (result.groqApiKey) {
+                elements.apiKeyInput.value = result.groqApiKey;
+            }
+            if (result.model) {
+                if (result.model === 'custom' || 
+                    (!Array.from(elements.modelSelect.options).some(opt => opt.value === result.model) && result.model !== 'custom')) {
+                    elements.modelSelect.value = 'custom';
+                    elements.customModelGroup.style.display = 'block';
+                    elements.customModelInput.value = result.customModel || result.model;
+                } else {
+                    elements.modelSelect.value = result.model;
+                }
+            }
+            // Load system prompt or use default
+            elements.systemPromptTextarea.value = result.systemPrompt || DEFAULT_SYSTEM_PROMPT;
+            
+            // Load language preference
+            elements.languageSelect.value = result.language || 'en';
+        });
     
-    // Handle reset prompt button
-    resetPromptBtn.addEventListener('click', async () => {
-      systemPromptTextarea.value = DEFAULT_SYSTEM_PROMPT;
-      showStatus(await t('resetPromptSuccess'), 'success');
-    });
+        // Handle language change
+        elements.languageSelect.addEventListener('change', async () => {
+            const newLang = elements.languageSelect.value;
+            chrome.storage.sync.set({ language: newLang }, async () => {
+                await updateUITranslations();
+                showStatus(await t('saveSuccess'), 'success');
+            });
+        });
     
-    // Save settings
-    saveBtn.addEventListener('click', async () => {
-      const apiKey = apiKeyInput.value.trim();
-      let model = modelSelect.value;
-      const customModel = customModelInput.value.trim();
-      const systemPrompt = systemPromptTextarea.value.trim();
+        // Handle model selection change
+        elements.modelSelect.addEventListener('change', () => {
+            if (elements.modelSelect.value === 'custom') {
+                elements.customModelGroup.style.display = 'block';
+            } else {
+                elements.customModelGroup.style.display = 'none';
+            }
+        });
+    
+        // Handle reset prompt button
+        elements.resetPromptBtn.addEventListener('click', async () => {
+            elements.systemPromptTextarea.value = DEFAULT_SYSTEM_PROMPT;
+            showStatus(await t('resetPromptSuccess'), 'success');
+        });
+    
+        // Save settings
+        elements.saveBtn.addEventListener('click', async () => {
+            const apiKey = elements.apiKeyInput.value.trim();
+            let model = elements.modelSelect.value;
+            const customModel = elements.customModelInput.value.trim();
+            const systemPrompt = elements.systemPromptTextarea.value.trim();
       
       if (!apiKey) {
         showStatus(await t('apiKeyRequired'), 'error');
@@ -135,58 +159,70 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     });
     
-    function showStatus(message, type) {
-      saveStatus.textContent = message;
-      saveStatus.className = `save-status ${type}`;
-      saveStatus.style.display = 'block';
-      
-      setTimeout(() => {
-        saveStatus.style.display = 'none';
-      }, 3000);
-    }
-    
-    async function updateUITranslations() {
-      const lang = await getCurrentLanguage();
-      
-      // Update all elements with data-i18n attribute
-      document.querySelectorAll('[data-i18n]').forEach(async element => {
-        const key = element.getAttribute('data-i18n');
-        element.textContent = await t(key);
-      });
-      
-      // Update placeholders
-      document.querySelectorAll('[data-i18n-placeholder]').forEach(async element => {
-        const key = element.getAttribute('data-i18n-placeholder');
-        element.placeholder = await t(key);
-      });
-      
-      // Update lists
-      document.querySelectorAll('[data-i18n-list]').forEach(async element => {
-        const key = element.getAttribute('data-i18n-list');
-        const items = translations[lang][key];
-        if (items && Array.isArray(items)) {
-          const listItems = element.querySelectorAll('li');
-          items.forEach((text, index) => {
-            if (listItems[index]) {
-              // Special handling for howToUseSteps with placeholder
-              if (key === 'howToUseSteps') {
-                listItems[index].innerHTML = text.replace('{shortcut}', '<strong>Ctrl+Shift+1</strong>');
-              } else {
-                listItems[index].innerHTML = text;
-              }
-            }
-          });
+        function showStatus(message, type) {
+            elements.saveStatus.textContent = message;
+            elements.saveStatus.className = `save-status ${type}`;
+            elements.saveStatus.style.display = 'block';
+            
+            setTimeout(() => {
+                elements.saveStatus.style.display = 'none';
+            }, 3000);
         }
-      });
-      
-      // Update special elements with nested spans
-      const apiKeyHelp = document.querySelector('[data-i18n="apiKeyHelp"]');
-      if (apiKeyHelp) {
-        const link = apiKeyHelp.nextElementSibling;
-        apiKeyHelp.textContent = await t('apiKeyHelp') + ' ';
-        if (link) {
-          apiKeyHelp.parentNode.insertBefore(link, apiKeyHelp.nextSibling);
-        }
-      }
+        
+    } catch (error) {
+        console.error('Error initializing config page:', error);
     }
 });
+    
+async function updateUITranslations() {
+    try {
+        const lang = await getCurrentLanguage();
+        console.log('Updating UI for language:', lang);
+        
+        // Update all elements with data-i18n attribute
+        const elementsToTranslate = document.querySelectorAll('[data-i18n]');
+        for (const element of elementsToTranslate) {
+            const key = element.getAttribute('data-i18n');
+            element.textContent = await t(key);
+        }
+      
+        // Update placeholders
+        const placeholderElements = document.querySelectorAll('[data-i18n-placeholder]');
+        for (const element of placeholderElements) {
+            const key = element.getAttribute('data-i18n-placeholder');
+            element.placeholder = await t(key);
+        }
+      
+        // Update lists with proper safety checks
+        const listElements = document.querySelectorAll('[data-i18n-list]');
+        for (const element of listElements) {
+            const key = element.getAttribute('data-i18n-list');
+            const items = translations[lang]?.[key] || translations.en[key];
+            if (items && Array.isArray(items)) {
+                const listItems = element.querySelectorAll('li');
+                items.forEach((text, index) => {
+                    if (listItems[index]) {
+                        // Special handling for howToUseSteps with placeholder
+                        if (key === 'howToUseSteps') {
+                            listItems[index].innerHTML = text.replace('{shortcut}', '<strong>Ctrl+Shift+1</strong>');
+                        } else {
+                            listItems[index].innerHTML = text;
+                        }
+                    }
+                });
+            }
+        }
+      
+        // Update special elements with nested spans
+        const apiKeyHelp = document.querySelector('[data-i18n="apiKeyHelp"]');
+        if (apiKeyHelp) {
+            const link = apiKeyHelp.nextElementSibling;
+            apiKeyHelp.textContent = await t('apiKeyHelp') + ' ';
+            if (link && link.tagName === 'A') {
+                apiKeyHelp.parentNode.insertBefore(link, apiKeyHelp.nextSibling);
+            }
+        }
+    } catch (error) {
+        console.error('Error updating UI translations:', error);
+    }
+}

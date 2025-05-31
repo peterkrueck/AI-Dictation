@@ -250,9 +250,19 @@ export const translations = {
 // Helper function to get current language
 export function getCurrentLanguage() {
   return new Promise((resolve) => {
-    chrome.storage.sync.get(['language'], (result) => {
-      resolve(result.language || 'en');
-    });
+    try {
+      chrome.storage.sync.get(['language'], (result) => {
+        if (chrome.runtime.lastError) {
+          console.error('Error getting language from storage:', chrome.runtime.lastError);
+          resolve('en'); // Default to English on error
+        } else {
+          resolve(result.language || 'en');
+        }
+      });
+    } catch (error) {
+      console.error('Error in getCurrentLanguage:', error);
+      resolve('en'); // Default to English on error
+    }
   });
 }
 

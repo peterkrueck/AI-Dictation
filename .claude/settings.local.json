@@ -3,7 +3,8 @@
     "allow": [
       "Bash(zip:*)",
       "Bash(ls:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(grep:*)"
     ]
   },
   "enableAllProjectMcpServers": false

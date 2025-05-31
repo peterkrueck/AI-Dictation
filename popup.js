@@ -6,36 +6,73 @@ import { t, getCurrentLanguage, translations } from './translations.js';
 // Add error handler
 window.addEventListener('error', (e) => {
   console.error('Popup script error:', e);
+  console.error('Error details:', e.message, e.filename, e.lineno, e.colno);
+});
+
+// Add unhandled rejection handler for promise errors
+window.addEventListener('unhandledrejection', (e) => {
+  console.error('Unhandled promise rejection:', e.reason);
 });
 
 console.log('Popup script loaded');
+console.log('Translations module loaded:', typeof translations);
 
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('DOM loaded, initializing popup...');
   try {
-    const dictateBtn = document.getElementById('dictate-btn');
-    const settingsLink = document.getElementById('settings-link');
-    const statusText = document.getElementById('status-text');
-    const statusDot = document.querySelector('.status-dot');
-    const debugBtn = document.getElementById('debug-btn');
-    const forceModeToggle = document.getElementById('force-mode-toggle');
+    // Get all elements first
+    const elements = {
+      dictateBtn: document.getElementById('dictate-btn'),
+      settingsLink: document.getElementById('settings-link'),
+      statusText: document.getElementById('status-text'),
+      statusDot: document.querySelector('.status-dot'),
+      debugBtn: document.getElementById('debug-btn'),
+      forceModeToggle: document.getElementById('force-mode-toggle')
+    };
     
-    // Update UI with translations
-    await updateUITranslations();
+    // Check if all elements exist
+    const missingElements = Object.entries(elements)
+      .filter(([name, el]) => !el)
+      .map(([name]) => name);
+    
+    if (missingElements.length > 0) {
+      console.error('Missing elements:', missingElements);
+      // Continue with available elements instead of returning
+    }
+    
+    // Initialize UI with default language first
+    await initializeUI(elements);
+    
+    // Update UI with translations (with timeout to prevent hanging)
+    const translationTimeout = new Promise((resolve) => {
+      setTimeout(() => {
+        console.warn('Translation update timed out, using defaults');
+        resolve();
+      }, 2000);
+    });
+    
+    await Promise.race([updateUITranslations(elements), translationTimeout]);
     
     // Check if API key is set
     chrome.storage.sync.get(['groqApiKey', 'forceDictation'], async (result) => {
+      if (chrome.runtime.lastError) {
+        console.error('Error getting storage:', chrome.runtime.lastError);
+        return;
+      }
+      
       if (!result.groqApiKey) {
-        statusText.textContent = await t('statusApiKeyNotSet');
-        statusDot.style.backgroundColor = '#FF4444';
-        dictateBtn.disabled = true;
+        if (elements.statusText) elements.statusText.textContent = await t('statusApiKeyNotSet');
+        if (elements.statusDot) elements.statusDot.style.backgroundColor = '#FF4444';
+        if (elements.dictateBtn) elements.dictateBtn.disabled = true;
       } else {
-        statusText.textContent = await t('statusReady');
-        statusDot.style.backgroundColor = '#44BB44';
+        if (elements.statusText) elements.statusText.textContent = await t('statusReady');
+        if (elements.statusDot) elements.statusDot.style.backgroundColor = '#44BB44';
       }
       
       // Set force mode toggle state
-      forceModeToggle.checked = result.forceDictation || false;
+      if (elements.forceModeToggle) {
+        elements.forceModeToggle.checked = result.forceDictation || false;
+      }
     });
     
     // Display actual keyboard shortcut
@@ -50,35 +87,51 @@ document.addEventListener('DOMContentLoaded', async () => {
           el.textContent = await t('shortcutNotSet');
         });
         // Add help text
-        const helpText = document.createElement('small');
-        helpText.style.color = '#666';
-        helpText.textContent = ' ' + await t('shortcutHelpText');
-        document.querySelector('.actual-shortcut').after(helpText);
+        const actualShortcut = document.querySelector('.actual-shortcut');
+        if (actualShortcut && !actualShortcut.nextElementSibling) {
+          const helpText = document.createElement('small');
+          helpText.style.color = '#666';
+          helpText.textContent = ' ' + await t('shortcutHelpText');
+          actualShortcut.after(helpText);
+        }
       }
     });
     
     // Handle force mode toggle
-    forceModeToggle.addEventListener('change', async () => {
-      chrome.storage.sync.set({ forceDictation: forceModeToggle.checked }, async () => {
-        showNotification(
-          forceModeToggle.checked 
-            ? await t('forceModeEnabled')
-            : await t('forceModeDisabled'), 
-          'success'
-        );
+    if (elements.forceModeToggle) {
+      elements.forceModeToggle.addEventListener('change', async () => {
+        chrome.storage.sync.set({ forceDictation: elements.forceModeToggle.checked }, async () => {
+          if (chrome.runtime.lastError) {
+            console.error('Error saving force mode:', chrome.runtime.lastError);
+            return;
+          }
+          showNotification(
+            elements.forceModeToggle.checked 
+              ? await t('forceModeEnabled')
+              : await t('forceModeDisabled'), 
+            'success'
+          );
+        });
       });
-    });
+    }
     
     // Handle debug button (always visible)
-    debugBtn.addEventListener('click', async () => {
-      chrome.runtime.sendMessage({ action: 'getDebugLogs' }, async (logs) => {
-        console.log('=== Voice Dictation Debug Logs ===');
-        console.log('Extension Version: 1.1');
-        console.log('Time:', new Date().toISOString());
-        console.log('Total Logs:', logs ? logs.length : 0);
-        console.log('');
-        
-        if (logs && logs.length > 0) {
+    if (elements.debugBtn) {
+      elements.debugBtn.addEventListener('click', async () => {
+        console.log('Debug button clicked');
+        chrome.runtime.sendMessage({ action: 'getDebugLogs' }, async (logs) => {
+          if (chrome.runtime.lastError) {
+            console.error('Error getting debug logs:', chrome.runtime.lastError);
+            return;
+          }
+          
+          console.log('=== Voice Dictation Debug Logs ===');
+          console.log('Extension Version: 1.2');
+          console.log('Time:', new Date().toISOString());
+          console.log('Total Logs:', logs ? logs.length : 0);
+          console.log('');
+          
+          if (logs && logs.length > 0) {
           logs.forEach(log => {
             console.log(`[${log.timestamp}] [${log.context}] ${log.message}`, 
               log.data ? JSON.parse(log.data) : '');
@@ -99,67 +152,115 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         
         console.log('=== End Debug Logs ===');
-      });
-    });
-    
-    // Handle dictation button click
-    dictateBtn.addEventListener('click', () => {
-      console.log('Dictate button clicked');
-      // Get active tab and start dictation
-      chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-        chrome.tabs.sendMessage(tabs[0].id, {action: 'startDictation'});
-        window.close();
-      });
-    });
-    
-    // Handle settings link
-    settingsLink.addEventListener('click', (e) => {
-      e.preventDefault();
-      console.log('Settings link clicked');
-      chrome.runtime.openOptionsPage();
-    });
-    
-    async function updateUITranslations() {
-      // Update static UI elements
-      document.querySelector('.popup-container h2').textContent = await t('extensionTitle');
-      document.querySelector('.force-mode-container span').textContent = await t('forceMode');
-      document.querySelector('.force-mode-container small').textContent = await t('forceModeDescription');
-      
-      // Update button text while preserving shortcut span
-      const btnText = await t('startDictation');
-      const shortcutSpan = dictateBtn.querySelector('.shortcut');
-      dictateBtn.innerHTML = btnText + ' ';
-      dictateBtn.appendChild(shortcutSpan);
-      
-      document.querySelector('#settings-link').textContent = await t('settingsLink');
-      document.querySelector('#debug-btn').textContent = await t('debugButton');
-      
-      // Update tips
-      document.querySelector('.tips p').innerHTML = '<strong>' + await t('tips') + '</strong>';
-      const tipsList = document.querySelectorAll('.tips li');
-      const shortcut = document.querySelector('.actual-shortcut').textContent || 'Ctrl+Shift+1';
-      const tipsTexts = [
-        await t('tipsList', { index: 0 }),
-        await t('tipsList', { index: 1 }).replace('{shortcut}', `<span class="actual-shortcut">${shortcut}</span>`),
-        await t('tipsList', { index: 2 }),
-        await t('tipsList', { index: 3 })
-      ];
-      
-      // Handle array translations
-      const lang = await getCurrentLanguage();
-      const tipsList_translated = translations[lang].tipsList;
-      tipsList.forEach((li, index) => {
-        if (index === 1) {
-          li.innerHTML = tipsList_translated[index].replace('{shortcut}', `<span class="actual-shortcut">${shortcut}</span>`);
-        } else {
-          li.textContent = tipsList_translated[index];
-        }
+        });
       });
     }
+    
+    // Handle dictation button click
+    if (elements.dictateBtn) {
+      elements.dictateBtn.addEventListener('click', () => {
+        console.log('Dictate button clicked');
+        // Get active tab and start dictation
+        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+          if (tabs && tabs[0]) {
+            chrome.tabs.sendMessage(tabs[0].id, {action: 'startDictation'}, (response) => {
+              if (chrome.runtime.lastError) {
+                console.error('Error sending message:', chrome.runtime.lastError);
+              }
+            });
+            window.close();
+          }
+        });
+      });
+    }
+    
+    // Handle settings link
+    if (elements.settingsLink) {
+      elements.settingsLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('Settings link clicked');
+        chrome.runtime.openOptionsPage();
+      });
+    }
+    
   } catch (error) {
     console.error('Error initializing popup:', error);
   }
 });
+
+async function initializeUI(elements) {
+  // Set default text content to prevent blank UI
+  const h2 = document.querySelector('.popup-container h2');
+  if (h2) h2.textContent = '🎤 AI Voice Dictation';
+  if (elements.statusText) elements.statusText.textContent = 'Loading...';
+  if (elements.dictateBtn) elements.dictateBtn.innerHTML = 'Start Dictation <span class="shortcut">Ctrl+Shift+1</span>';
+  const settingsLink = document.querySelector('#settings-link');
+  if (settingsLink) settingsLink.textContent = '⚙️ Settings';
+  const debugBtn = document.querySelector('#debug-btn');
+  if (debugBtn) debugBtn.textContent = '🐛 View Debug Logs';
+}
+
+async function updateUITranslations(elements) {
+      try {
+        console.log('Starting UI translations update...');
+        
+        // Update static UI elements
+        const h2 = document.querySelector('.popup-container h2');
+        if (h2) h2.textContent = await t('extensionTitle');
+        
+        const forceSpan = document.querySelector('.force-mode-container span');
+        if (forceSpan) forceSpan.textContent = await t('forceMode');
+        
+        const forceSmall = document.querySelector('.force-mode-container small');
+        if (forceSmall) forceSmall.textContent = await t('forceModeDescription');
+        
+        // Update button text while preserving shortcut span
+        const dictateBtn = elements?.dictateBtn || document.getElementById('dictate-btn');
+        if (dictateBtn) {
+          const btnText = await t('startDictation');
+          const shortcutSpan = dictateBtn.querySelector('.shortcut');
+          const shortcutText = shortcutSpan ? shortcutSpan.outerHTML : '<span class="shortcut">Ctrl+Shift+1</span>';
+          dictateBtn.innerHTML = btnText + ' ' + shortcutText;
+        }
+        
+        const settingsLinkEl = document.querySelector('#settings-link');
+        if (settingsLinkEl) settingsLinkEl.textContent = await t('settingsLink');
+        
+        const debugBtnEl = document.querySelector('#debug-btn');
+        if (debugBtnEl) debugBtnEl.textContent = await t('debugButton');
+        
+        // Update tips
+        const tipsP = document.querySelector('.tips p');
+        if (tipsP) tipsP.innerHTML = '<strong>' + await t('tips') + '</strong>';
+        
+        const tipsList = document.querySelectorAll('.tips li');
+        const shortcutEl = document.querySelector('.actual-shortcut');
+        const shortcut = shortcutEl ? shortcutEl.textContent : 'Ctrl+Shift+1';
+        
+        // Handle tips list with proper safety checks
+        const lang = await getCurrentLanguage();
+        console.log('Current language:', lang);
+        
+        // Safely get translations
+        const tipsList_translated = translations[lang]?.tipsList || translations.en.tipsList;
+        
+        if (tipsList_translated && Array.isArray(tipsList_translated)) {
+          tipsList.forEach((li, index) => {
+            if (index < tipsList_translated.length) {
+              if (index === 1) {
+                li.innerHTML = tipsList_translated[index].replace('{shortcut}', `<span class="actual-shortcut">${shortcut}</span>`);
+              } else {
+                li.textContent = tipsList_translated[index];
+              }
+            }
+          });
+        }
+        
+        console.log('UI translations update completed');
+      } catch (error) {
+        console.error('Error updating UI translations:', error);
+      }
+    }
 
 function showNotification(message, type) {
   // Simple notification for popup
