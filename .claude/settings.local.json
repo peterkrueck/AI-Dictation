@@ -4,7 +4,8 @@
       "Bash(zip:*)",
       "Bash(ls:*)",
       "Bash(mkdir:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(rm:*)"
     ]
   },
   "enableAllProjectMcpServers": false
