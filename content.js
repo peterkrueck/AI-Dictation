@@ -104,6 +104,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 function findBestTextTarget() {
   debugLog('Finding best text target...');
   
+  // Special case for Google Docs
+  if (window.location.hostname === 'docs.google.com') {
+    debugLog('Google Docs detected, returning special marker');
+    return 'google-docs-special-case';
+  }
+  
   // Priority 1: Currently focused element
   const focused = document.activeElement;
   if (isTextInput(focused)) {
@@ -161,13 +167,17 @@ function startDictation() {
   
   let targetElement = findBestTextTarget();
   
-  if (!targetElement && !forceMode) {
+  // Handle Google Docs special case
+  if (targetElement === 'google-docs-special-case') {
+    // For Google Docs, we'll proceed with the recording
+    window.voiceDictationTarget = 'google-docs-special-case';
+  } else if (!targetElement && !forceMode) {
     showNotification(t('noTextFieldError'), 'error');
     return;
+  } else {
+    // Store the element or null for clipboard fallback
+    window.voiceDictationTarget = targetElement;
   }
-  
-  // Store the element or null for clipboard fallback
-  window.voiceDictationTarget = targetElement;
   
   if (!targetElement && forceMode) {
     showNotification(t('forceModeInfo'), 'info');
@@ -253,6 +263,21 @@ function isTextInput(element) {
 }
 
 function insertText(element, text) {
+  // Special handling for Google Docs
+  if (element === 'google-docs-special-case') {
+    insertTextGoogleDocs(text);
+    return;
+  }
+  
+  // Special handling for Telekom Email
+  if (window.location.hostname.includes('email.t-online.de')) {
+    const iframe = document.querySelector('iframe[id*="mail"]');
+    if (iframe) {
+      insertTextTelekomEmail(iframe, text);
+      return;
+    }
+  }
+  
   if (!element) {
     // Clipboard fallback for force mode
     debugLog('No element found, using clipboard fallback');
@@ -266,6 +291,12 @@ function insertText(element, text) {
     return;
   }
   
+  // Standard insertion method
+  insertTextStandard(element, text);
+}
+
+// Helper function for standard text insertion
+function insertTextStandard(element, text) {
   debugLog('Inserting text into element:', element.tagName);
   
   // Focus the element first
@@ -369,6 +400,126 @@ function insertText(element, text) {
   }
 }
 
+// Helper function for Google Docs
+function insertTextGoogleDocs(text) {
+  debugLog('Using Google Docs specific insertion method');
+  
+  // Find the Google Docs editor iframe
+  const iframe = document.querySelector('iframe.docs-texteventtarget-iframe');
+  if (!iframe || !iframe.contentDocument) {
+    debugLog('Google Docs iframe not found, using clipboard fallback');
+    navigator.clipboard.writeText(text).then(() => {
+      showNotification(t('textCopiedSuccess'), 'success');
+    }).catch(() => {
+      showNotification(t('clipboardError', { text }), 'error');
+    });
+    return;
+  }
+  
+  try {
+    // Focus the iframe
+    iframe.contentWindow.focus();
+    
+    // Use clipboard API to paste into Google Docs
+    navigator.clipboard.writeText(text).then(() => {
+      // Simulate paste event
+      const pasteEvent = new ClipboardEvent('paste', {
+        clipboardData: new DataTransfer(),
+        bubbles: true,
+        cancelable: true
+      });
+      
+      // Add text to clipboard data
+      pasteEvent.clipboardData.setData('text/plain', text);
+      
+      // Dispatch to iframe's document
+      iframe.contentDocument.dispatchEvent(pasteEvent);
+      
+      // If that doesn't work, try keyboard simulation
+      setTimeout(() => {
+        const keyEvent = new KeyboardEvent('keydown', {
+          key: 'v',
+          ctrlKey: true,
+          bubbles: true
+        });
+        iframe.contentDocument.dispatchEvent(keyEvent);
+      }, 100);
+      
+      debugLog('Text inserted into Google Docs');
+    }).catch((err) => {
+      debugLog('Failed to insert into Google Docs:', err);
+      showNotification(t('directInsertError'), 'info');
+    });
+  } catch (e) {
+    debugLog('Error with Google Docs insertion:', e);
+    navigator.clipboard.writeText(text).then(() => {
+      showNotification(t('textCopiedSuccess'), 'success');
+    }).catch(() => {
+      showNotification(t('clipboardError', { text }), 'error');
+    });
+  }
+}
+
+// Helper function for Telekom Email
+function insertTextTelekomEmail(iframe, text) {
+  debugLog('Using Telekom Email specific insertion method');
+  
+  try {
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+    const editor = iframeDoc.querySelector('body[contenteditable="true"], div[contenteditable="true"]');
+    
+    if (editor) {
+      editor.focus();
+      
+      // Try execCommand first
+      if (iframeDoc.execCommand('insertText', false, text)) {
+        debugLog('Text inserted via execCommand in Telekom Email');
+        return;
+      }
+      
+      // Fallback to direct insertion
+      const selection = iframe.contentWindow.getSelection();
+      const range = iframeDoc.createRange();
+      
+      if (selection.rangeCount > 0) {
+        range.deleteContents();
+      }
+      
+      const textNode = iframeDoc.createTextNode(text);
+      range.insertNode(textNode);
+      range.setStartAfter(textNode);
+      range.setEndAfter(textNode);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      
+      debugLog('Text inserted via Selection API in Telekom Email');
+    } else {
+      throw new Error('Editor not found in iframe');
+    }
+  } catch (e) {
+    debugLog('Failed to insert into Telekom Email:', e);
+    navigator.clipboard.writeText(text).then(() => {
+      showNotification(t('textCopiedSuccess'), 'success');
+    }).catch(() => {
+      showNotification(t('clipboardError', { text }), 'error');
+    });
+  }
+}
+
+// Helper function to check element visibility
+function isElementVisible(element) {
+  if (!element) return false;
+  
+  const rect = element.getBoundingClientRect();
+  const style = window.getComputedStyle(element);
+  
+  return rect.width > 0 && 
+         rect.height > 0 && 
+         style.display !== 'none' && 
+         style.visibility !== 'hidden' && 
+         style.opacity !== '0';
+}
+
 function showRecordingIndicator() {
   recordingIndicator = document.createElement('div');
   recordingIndicator.id = 'voice-dictation-indicator';
@@ -433,13 +584,11 @@ function showRecordingIndicator() {
   
   recordingIndicator.onclick = stopRecording;
   
-  // Keyboard shortcuts to stop recording
+  // Simplified keyboard handler
   const keyHandler = (e) => {
     if (e.key === 'Escape' || e.key === 'Enter') {
       e.preventDefault();
-      e.stopPropagation();
       stopRecording();
-      document.removeEventListener('keydown', keyHandler, true);
     }
   };
   
@@ -451,10 +600,16 @@ function showRecordingIndicator() {
 
 function hideRecordingIndicator() {
   if (recordingIndicator) {
+    // Clean up event listener
     if (recordingIndicator.keyHandler) {
       document.removeEventListener('keydown', recordingIndicator.keyHandler, true);
+      delete recordingIndicator.keyHandler;
     }
+    
+    // Animate out
     recordingIndicator.style.animation = 'slideOut 0.3s ease-out';
+    
+    // Remove after animation
     setTimeout(() => {
       if (recordingIndicator && recordingIndicator.parentNode) {
         recordingIndicator.remove();

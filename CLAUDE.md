@@ -116,6 +116,15 @@ Manual testing is required for Chrome extensions:
   - **Enhanced URL Context** - System prompt now includes the current URL for better context-aware formatting
   - **Improved App Detection** - LLM can now see the exact website URL to format text more appropriately
   - **Updated Default System Prompt** - More detailed style guide that references actual URLs instead of generic app names
+- **Version 1.2.3 Updates**:
+  - **Fixed Google Docs Text Insertion** - Completely fixed the issue where text was inserted into the document title instead of the body
+  - **Enhanced Keyboard Event Handling** - Improved ESC/Enter key capture on complex sites like Google Docs and Telekom Email
+  - **Google Docs Special Handling** - Extension now uses clipboard-only mode for Google Docs to prevent title field insertion
+  - **Site-Specific Text Insertion** - Added specialized handlers for Google Docs and Telekom Email with iframe support
+  - **Green Success Notifications** - Added bright green "text ready" notifications for better user feedback when using clipboard
+  - **Simplified Event Handlers** - Streamlined keyboard event capture based on code review feedback
+  - **Enhanced Error Handling** - Better fallback mechanisms and user-friendly error messages
+  - **Improved Text Field Detection** - More robust detection of text input areas across complex web applications
 
 ## Debugging Features
 

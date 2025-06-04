@@ -2,7 +2,7 @@
 let mediaRecorder = null;
 let audioChunks = [];
 let currentAppName = null;
-let currentUrl = null;
+let currentUrlFromBackground = null;
 
 console.log('[Offscreen] Document loaded at', new Date().toISOString());
 
@@ -25,12 +25,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-async function startRecording(appName, url) {
-  console.log('[Offscreen] Starting recording for app:', appName, 'URL:', url);
+async function startRecording(appName, urlParam) {
+  console.log('[Offscreen] Starting recording for app:', appName, 'URL:', urlParam);
   
   try {
     currentAppName = appName;
-    currentUrl = url;
+    currentUrlFromBackground = urlParam;
     
     // Check if mediaDevices is available
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -130,7 +130,7 @@ async function startRecording(appName, url) {
             action: 'recordingComplete',
             audioData: base64Data,
             appName: currentAppName,
-            currentUrl: currentUrl,
+            currentUrl: currentUrlFromBackground,
             mimeType: selectedMimeType,
             duration: audioChunks.length
           });
