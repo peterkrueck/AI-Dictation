@@ -7,7 +7,7 @@ let recordingStartTime = null;
 let countdownInterval = null;
 
 // Debug logging system
-const DEBUG = false; // Set to false in production
+const DEBUG = true; // Set to false in production
 
 function debugLog(context, message, data = null) {
   if (!DEBUG) return;
@@ -460,17 +460,27 @@ function detectApp(url, title) {
 }
 
 async function processAudio(audioBlob, appName, currentUrl) {
+  debugLog('PROCESS_AUDIO', 'Starting audio processing', { appName, currentUrl });
+  
   // Get settings from storage
   const storage = await chrome.storage.sync.get(['groqApiKey', 'model', 'customModel', 'systemPrompt']);
   const apiKey = storage.groqApiKey;
-  let model = storage.model || 'meta-llama/Llama-4-Scout-17B-16E-Instruct';
+  let model = storage.model || 'qwen-qwq-32b';
+  
+  debugLog('PROCESS_AUDIO', 'Settings loaded', { 
+    hasApiKey: !!apiKey, 
+    model: model,
+    hasCustomModel: !!storage.customModel 
+  });
   
   // Use custom model if selected
   if (model === 'custom' && storage.customModel) {
     model = storage.customModel;
+    debugLog('PROCESS_AUDIO', 'Using custom model', model);
   }
   
   if (!apiKey) {
+    debugLog('PROCESS_AUDIO', 'No API key found');
     throw new Error('Please set your Groq API key in the extension settings');
   }
   
@@ -565,7 +575,10 @@ Current URL: ${currentUrl}`;
   
   if (!llmResponse.ok) {
     const errorText = await llmResponse.text();
-    console.error('LLM API error:', errorText);
+    console.error('LLM API error:', llmResponse.status, llmResponse.statusText);
+    console.error('LLM API error details:', errorText);
+    console.error('Request model:', model);
+    console.error('Request API key first 10 chars:', apiKey ? apiKey.substring(0, 10) + '...' : 'No API key');
     // If LLM fails, return the raw transcription
     console.log('Falling back to raw transcription');
     return rawText;

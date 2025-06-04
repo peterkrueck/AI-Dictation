@@ -4,7 +4,7 @@ let forceMode = false;
 let currentLanguage = 'en';
 
 // Debug mode
-const DEBUG = false;
+const DEBUG = true;
 
 function debugLog(message, data = null) {
   if (!DEBUG) return;
