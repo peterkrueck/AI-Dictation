@@ -131,6 +131,10 @@ Manual testing is required for Chrome extensions:
   - **Brighter Success Notifications** - Enhanced clipboard success notifications with brighter green color (#00C851) for better visibility
   - **Multilingual Force Mode Messages** - Force Mode clipboard notifications available in both English and German
   - **Simplified Force Mode Workflow** - Eliminates text field detection complexity when Force Mode is active, ensuring consistent clipboard behavior
+- **Version 1.3.1 Updates**:
+  - **Fixed JSON Output Issue** - Added `response_format: { type: 'json_object' }` parameter to Groq API request to eliminate thinking tokens in output
+  - **Clean Text Output** - Extension now properly outputs only the formatted text without JSON wrappers or thinking tokens
+  - **Consistent API Behavior** - Aligned Chrome extension with macOS Shortcuts version for consistent JSON response handling
 
 ## Debugging Features
 

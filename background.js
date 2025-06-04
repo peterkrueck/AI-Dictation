@@ -496,7 +496,8 @@ Current URL: ${currentUrl}`;
         }
       ],
       temperature: 0.3,
-      max_tokens: 6000
+      max_tokens: 6000,
+      response_format: { type: 'json_object' }
     })
   });
   
