@@ -8,7 +8,9 @@
       "Bash(rm:*)",
       "Bash(python3:*)",
       "Bash(chmod:*)",
-      "Bash(./create_simple_icons.sh:*)"
+      "Bash(./create_simple_icons.sh:*)",
+      "Bash(git rm:*)",
+      "Bash(git commit:*)"
     ]
   },
   "enableAllProjectMcpServers": false
