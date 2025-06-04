@@ -112,6 +112,10 @@ Manual testing is required for Chrome extensions:
   - **Language Selector** - New language dropdown in settings
   - **Synced Language Preference** - Language choice syncs across all devices
   - **Localized Extension Metadata** - Extension name and description support both languages
+- **Version 1.2.2 Updates**:
+  - **Enhanced URL Context** - System prompt now includes the current URL for better context-aware formatting
+  - **Improved App Detection** - LLM can now see the exact website URL to format text more appropriately
+  - **Updated Default System Prompt** - More detailed style guide that references actual URLs instead of generic app names
 
 ## Debugging Features
 

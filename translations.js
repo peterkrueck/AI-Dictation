@@ -51,7 +51,7 @@ export const translations = {
     systemPromptTitle: "AI System Prompt Customization",
     systemPromptLabel: "Custom System Prompt:",
     systemPromptPlaceholder: "Enter your custom system prompt instructions for the AI...",
-    systemPromptHelp: "Customize how the AI formats and processes your dictated text. Leave blank to use default behavior.",
+    systemPromptHelp: "Customize how the AI processes your dictated text. The detected application name and current page URL will be automatically provided to the AI after your custom prompt (e.g., as 'Current application context: Gmail' and 'Current URL: https://mail.google.com'). Your prompt should instruct the AI on how to use this information. The default prompt provides an example of this.",
     resetPromptButton: "Reset to Default",
     resetPromptHelp: "Click to restore the default system prompt used by the extension",
     resetPromptSuccess: "System prompt reset to default",
@@ -107,7 +107,7 @@ export const translations = {
     model: "Model:",
     modelDescription: "Using Groq's latest Llama 4 Scout 17B model",
     privacy: "Privacy:",
-    privacyDescription: "All processing is done via direct API calls. No data is stored.",
+    privacyDescription: "All processing, including the URL of the active page for contextual formatting, is done via direct API calls to Groq. The extension does not store your dictation audio or full URLs. Please refer to Groq's privacy policy for how they handle API data.",
     madeWith: "Made with ❤️ for Dad's Chromebook",
     
     // Content script messages
@@ -174,7 +174,7 @@ export const translations = {
     systemPromptTitle: "KI-System-Prompt Anpassung",
     systemPromptLabel: "Benutzerdefinierter System-Prompt:",
     systemPromptPlaceholder: "Geben Sie Ihre benutzerdefinierten System-Prompt-Anweisungen für die KI ein...",
-    systemPromptHelp: "Passen Sie an, wie die KI Ihren diktierten Text formatiert und verarbeitet. Leer lassen für Standardverhalten.",
+    systemPromptHelp: "Passen Sie an, wie die KI Ihren diktierten Text verarbeitet. Der erkannte Anwendungsname und die aktuelle Seiten-URL werden der KI automatisch nach Ihrem benutzerdefinierten Prompt bereitgestellt (z.B. als 'Current application context: Gmail' und 'Current URL: https://mail.google.com'). Ihr Prompt sollte die KI anleiten, wie diese Informationen verwendet werden sollen. Der Standard-Prompt enthält hierfür ein Beispiel.",
     resetPromptButton: "Auf Standard zurücksetzen",
     resetPromptHelp: "Klicken Sie, um den Standard-System-Prompt der Erweiterung wiederherzustellen",
     resetPromptSuccess: "System-Prompt auf Standard zurückgesetzt",
@@ -230,7 +230,7 @@ export const translations = {
     model: "Modell:",
     modelDescription: "Verwendet Groqs neuestes Llama 4 Scout 17B Modell",
     privacy: "Datenschutz:",
-    privacyDescription: "Alle Verarbeitung erfolgt über direkte API-Aufrufe. Keine Daten werden gespeichert.",
+    privacyDescription: "Die gesamte Verarbeitung, einschließlich der URL der aktiven Seite zur kontextbezogenen Formatierung, erfolgt über direkte API-Aufrufe an Groq. Die Erweiterung speichert weder Ihre Diktat-Audioaufnahmen noch vollständige URLs. Informationen zum Umgang mit API-Daten durch Groq entnehmen Sie bitte deren Datenschutzrichtlinien.",
     madeWith: "Mit ❤️ für Papas Chromebook gemacht",
     
     // Content script messages
