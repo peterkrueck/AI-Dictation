@@ -2,6 +2,7 @@
 let recordingIndicator = null;
 let forceMode = false;
 let currentLanguage = 'en';
+let isStoppingRecording = false; // Prevent double-calling stopRecording
 
 // Debug mode
 const DEBUG = true;
@@ -21,7 +22,7 @@ debugLog('Content script loaded on', window.location.href);
 // Load translations inline since content scripts can't use dynamic imports
 const translations = {
   en: {
-    recordingIndicator: "Recording... Press Enter/Esc or click to stop",
+    recordingIndicator: "🎤 Recording... Press ENTER or ESC to stop",
     recordingTimeRemaining: "{seconds}s remaining",
     noTextFieldError: "Please click in a text field first, or enable \"Force Mode\" in the extension popup to dictate anywhere.",
     forceModeInfo: "Force Mode: Text will be copied to clipboard",
@@ -34,7 +35,7 @@ const translations = {
     error: "Error: {error}"
   },
   de: {
-    recordingIndicator: "Aufnahme... Enter/Esc drücken oder klicken zum Beenden",
+    recordingIndicator: "🎤 Aufnahme... ENTER oder ESC zum Beenden",
     recordingTimeRemaining: "Noch {seconds}s",
     noTextFieldError: "Bitte erst in ein Textfeld klicken oder \"Überall-Modus\" im Erweiterungs-Popup aktivieren, um überall zu diktieren.",
     forceModeInfo: "Überall-Modus: Text wird in Zwischenablage kopiert",
@@ -186,6 +187,9 @@ window.voiceDictationExtension = window.voiceDictationExtension || {};
 
 window.voiceDictationExtension.startDictation = function startDictation() {
   debugLog('Starting dictation, force mode:', forceMode);
+  
+  // Reset stopping flag
+  isStoppingRecording = false;
   
   let targetElement = findBestTextTarget();
   
@@ -574,17 +578,20 @@ window.voiceDictationExtension.showRecordingIndicator = function showRecordingIn
     right: 20px;
     background: #FF4444;
     color: white;
-    padding: 12px 20px;
-    border-radius: 25px;
+    padding: 14px 24px;
+    border-radius: 30px;
     font-family: system-ui, -apple-system, sans-serif;
-    font-size: 14px;
+    font-size: 15px;
+    font-weight: 500;
     display: flex;
     align-items: center;
-    gap: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    gap: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
     cursor: pointer;
     z-index: 2147483647;
     animation: slideIn 0.3s ease-out;
+    user-select: none;
+    transition: transform 0.1s ease, opacity 0.1s ease;
   `;
   
   const dot = recordingIndicator.querySelector('.recording-dot');
@@ -619,32 +626,78 @@ window.voiceDictationExtension.showRecordingIndicator = function showRecordingIn
   }
   
   const stopRecording = () => {
+    if (isStoppingRecording) {
+      debugLog('Already stopping recording, ignoring duplicate call');
+      return;
+    }
+    isStoppingRecording = true;
+    debugLog('Stop recording triggered');
     chrome.runtime.sendMessage({action: 'stopRecording'});
     window.voiceDictationExtension.hideRecordingIndicator();
   };
   
   recordingIndicator.onclick = stopRecording;
   
-  // Simplified keyboard handler
+  // Single robust keyboard handler on the focused indicator
   const keyHandler = (e) => {
     if (e.key === 'Escape' || e.key === 'Enter') {
+      debugLog(`Key pressed during recording: ${e.key}`);
       e.preventDefault();
+      e.stopPropagation();
+      
+      // Visual feedback that key was detected
+      if (recordingIndicator) {
+        recordingIndicator.style.transform = 'scale(0.95)';
+        recordingIndicator.style.opacity = '0.8';
+        setTimeout(() => {
+          if (recordingIndicator) {
+            recordingIndicator.style.transform = 'scale(1)';
+            recordingIndicator.style.opacity = '1';
+          }
+        }, 100);
+      }
+      
       stopRecording();
     }
   };
   
-  document.addEventListener('keydown', keyHandler, true);
+  document.body.appendChild(recordingIndicator);
+  
+  // Make the indicator focusable and focus it
+  recordingIndicator.setAttribute('tabindex', '-1');
+  recordingIndicator.focus();
+  
+  // Attach keyboard handler directly to the focused indicator
+  recordingIndicator.addEventListener('keydown', keyHandler, true);
+  
+  // Store handler for cleanup
   recordingIndicator.keyHandler = keyHandler;
   
-  document.body.appendChild(recordingIndicator);
+  // For ChromeOS, also add a global capture handler as backup
+  if (navigator.userAgent.includes('CrOS')) {
+    debugLog('ChromeOS detected, adding backup global handler');
+    const globalHandler = (e) => {
+      if (recordingIndicator && (e.key === 'Escape' || e.key === 'Enter')) {
+        keyHandler(e);
+      }
+    };
+    window.addEventListener('keydown', globalHandler, true);
+    recordingIndicator.globalHandler = globalHandler;
+  }
 }
 
 window.voiceDictationExtension.hideRecordingIndicator = function hideRecordingIndicator() {
   if (recordingIndicator) {
-    // Clean up event listener
+    // Remove keyboard handler from indicator
     if (recordingIndicator.keyHandler) {
-      document.removeEventListener('keydown', recordingIndicator.keyHandler, true);
+      recordingIndicator.removeEventListener('keydown', recordingIndicator.keyHandler, true);
       delete recordingIndicator.keyHandler;
+    }
+    
+    // Remove ChromeOS global handler if present
+    if (recordingIndicator.globalHandler) {
+      window.removeEventListener('keydown', recordingIndicator.globalHandler, true);
+      delete recordingIndicator.globalHandler;
     }
     
     // Animate out
@@ -656,6 +709,8 @@ window.voiceDictationExtension.hideRecordingIndicator = function hideRecordingIn
         recordingIndicator.remove();
         recordingIndicator = null;
       }
+      // Reset stopping flag
+      isStoppingRecording = false;
     }, 300);
   }
 }

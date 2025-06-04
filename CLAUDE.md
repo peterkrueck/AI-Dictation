@@ -142,6 +142,18 @@ Manual testing is required for Chrome extensions:
   - **Better Error Messages** - Enhanced error handling with user-friendly notifications for common issues
   - **Content Script Injection** - Improved reliability of content script loading with verification and timeout handling
   - **Icon Support Added** - Added proper extension icons for notifications and Chrome Web Store
+  - **Fixed API Compatibility Issue** - Changed default model to `qwen-qwq-32b` and enhanced error logging for better API debugging
+  - **Enhanced Debug Logging** - Added comprehensive request/response logging in processAudio function for troubleshooting API issues
+  - **Model Selection Fix** - Corrected default model selection to match available Groq models and user preferences
+- **Version 1.4.1 Updates**:
+  - **Fixed ChromeOS ESC/Enter Key Issue** - Completely resolved keyboard event handling on ChromeOS devices during recording
+  - **Added Idempotency Protection** - Prevents double-calling of stopRecording function with isStoppingRecording flag
+  - **Focused Indicator Approach** - Recording indicator now receives focus to reliably capture keyboard events
+  - **Enhanced Visual Feedback** - Users see indicator scale animation when ESC/Enter keys are detected
+  - **ChromeOS-Specific Backup Handler** - Added global capture handler specifically for ChromeOS devices
+  - **Improved Translation Strings** - More prominent keyboard shortcut instructions in recording indicator
+  - **Proper Event Cleanup** - All keyboard event listeners are properly removed when recording stops
+  - **Reliable Key Detection** - ESC and Enter keys now work consistently in Force Mode on ChromeOS
 
 ## Debugging Features
 
