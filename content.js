@@ -26,6 +26,7 @@ const translations = {
     noTextFieldError: "Please click in a text field first, or enable \"Force Mode\" in the extension popup to dictate anywhere.",
     forceModeInfo: "Force Mode: Text will be copied to clipboard",
     textCopiedSuccess: "✅ Text copied to clipboard! Press Ctrl+V to paste.",
+    forceModeClipboardSuccess: "✅ Output copied to clipboard! Please insert via Ctrl+V",
     clipboardError: "Could not copy to clipboard. Text: {text}",
     directInsertError: "Could not insert directly. Text copied to clipboard - press Ctrl+V to paste.",
     insertError: "Could not insert text",
@@ -38,6 +39,7 @@ const translations = {
     noTextFieldError: "Bitte erst in ein Textfeld klicken oder \"Überall-Modus\" im Erweiterungs-Popup aktivieren, um überall zu diktieren.",
     forceModeInfo: "Überall-Modus: Text wird in Zwischenablage kopiert",
     textCopiedSuccess: "✅ Text in Zwischenablage kopiert! Strg+V zum Einfügen drücken.",
+    forceModeClipboardSuccess: "✅ Text in Zwischenablage kopiert! Bitte über Strg+V einfügen",
     clipboardError: "Konnte nicht in Zwischenablage kopieren. Text: {text}",
     directInsertError: "Konnte nicht direkt einfügen. Text in Zwischenablage kopiert - Strg+V zum Einfügen drücken.",
     insertError: "Konnte Text nicht einfügen",
@@ -263,6 +265,19 @@ function isTextInput(element) {
 }
 
 function insertText(element, text) {
+  // If Force Mode is enabled, ALWAYS copy to clipboard instead of inserting
+  if (forceMode) {
+    debugLog('Force Mode enabled, copying to clipboard instead of inserting');
+    navigator.clipboard.writeText(text).then(() => {
+      showNotification(t('forceModeClipboardSuccess'), 'success');
+      debugLog('Text copied to clipboard successfully (Force Mode)');
+    }).catch((err) => {
+      debugLog('Clipboard write failed in Force Mode:', err);
+      showNotification(t('clipboardError', { text }), 'error');
+    });
+    return;
+  }
+  
   // Special handling for Google Docs
   if (element === 'google-docs-special-case') {
     insertTextGoogleDocs(text);
@@ -279,7 +294,7 @@ function insertText(element, text) {
   }
   
   if (!element) {
-    // Clipboard fallback for force mode
+    // Clipboard fallback for when no element is found
     debugLog('No element found, using clipboard fallback');
     navigator.clipboard.writeText(text).then(() => {
       showNotification(t('textCopiedSuccess'), 'success');
@@ -645,7 +660,7 @@ function showNotification(message, type = 'info') {
   
   const colors = {
     error: '#FF4444',
-    success: '#44BB44',
+    success: '#00C851',
     info: '#2196F3'
   };
   

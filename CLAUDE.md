@@ -125,6 +125,12 @@ Manual testing is required for Chrome extensions:
   - **Simplified Event Handlers** - Streamlined keyboard event capture based on code review feedback
   - **Enhanced Error Handling** - Better fallback mechanisms and user-friendly error messages
   - **Improved Text Field Detection** - More robust detection of text input areas across complex web applications
+- **Version 1.3 Updates**:
+  - **Enhanced Force Mode** - When Force Mode is enabled, LLM output is ALWAYS copied to clipboard instead of attempting text insertion
+  - **Improved Force Mode Notifications** - Added dedicated "Output copied to clipboard! Please insert via Ctrl+V" notification for Force Mode
+  - **Brighter Success Notifications** - Enhanced clipboard success notifications with brighter green color (#00C851) for better visibility
+  - **Multilingual Force Mode Messages** - Force Mode clipboard notifications available in both English and German
+  - **Simplified Force Mode Workflow** - Eliminates text field detection complexity when Force Mode is active, ensuring consistent clipboard behavior
 
 ## Debugging Features
 
