@@ -4,7 +4,7 @@ let forceMode = false;
 let currentLanguage = 'en';
 
 // Debug mode
-const DEBUG = true;
+const DEBUG = false;
 
 function debugLog(message, data = null) {
   if (!DEBUG) return;
@@ -94,7 +94,7 @@ document.addEventListener('focusin', (e) => {
 // Listen for messages from background script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'startDictation') {
-    startDictation();
+    window.voiceDictationExtension.startDictation();
   } else if (request.action === 'recordingWarning') {
     updateRecordingIndicator(request.secondsRemaining);
   } else if (request.action === 'ping') {
@@ -102,6 +102,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse({ status: 'ready' });
   }
 });
+
+// ChromeOS global keyboard handler
+if (navigator.userAgent.includes('CrOS')) {
+  debugLog('ChromeOS detected, adding global keyboard handler');
+  
+  document.addEventListener('keydown', (event) => {
+    // Check for Ctrl+Shift+1
+    if (event.ctrlKey && event.shiftKey && event.key === '1') {
+      debugLog('ChromeOS keyboard shortcut detected');
+      event.preventDefault();
+      event.stopPropagation();
+      
+      // Start dictation directly
+      window.voiceDictationExtension.startDictation();
+    }
+  }, true); // Use capture phase
+}
 
 function findBestTextTarget() {
   debugLog('Finding best text target...');
@@ -164,7 +181,10 @@ function findBestTextTarget() {
   return null;
 }
 
-function startDictation() {
+// Make functions globally accessible for ChromeOS
+window.voiceDictationExtension = window.voiceDictationExtension || {};
+
+window.voiceDictationExtension.startDictation = function startDictation() {
   debugLog('Starting dictation, force mode:', forceMode);
   
   let targetElement = findBestTextTarget();
@@ -186,13 +206,13 @@ function startDictation() {
   }
   
   // Show recording indicator
-  showRecordingIndicator();
+  window.voiceDictationExtension.showRecordingIndicator();
   
   debugLog('Sending startRecording message to background');
   
   // Request recording from background script
   chrome.runtime.sendMessage({action: 'startRecording'}, (response) => {
-    hideRecordingIndicator();
+    window.voiceDictationExtension.hideRecordingIndicator();
     
     debugLog('Received response from background', response);
     
@@ -535,7 +555,13 @@ function isElementVisible(element) {
          style.opacity !== '0';
 }
 
-function showRecordingIndicator() {
+window.voiceDictationExtension.showRecordingIndicator = function showRecordingIndicator() {
+  // Check if already showing to prevent duplicates
+  if (recordingIndicator) {
+    debugLog('Recording indicator already showing');
+    return;
+  }
+  
   recordingIndicator = document.createElement('div');
   recordingIndicator.id = 'voice-dictation-indicator';
   recordingIndicator.innerHTML = `
@@ -594,7 +620,7 @@ function showRecordingIndicator() {
   
   const stopRecording = () => {
     chrome.runtime.sendMessage({action: 'stopRecording'});
-    hideRecordingIndicator();
+    window.voiceDictationExtension.hideRecordingIndicator();
   };
   
   recordingIndicator.onclick = stopRecording;
@@ -613,7 +639,7 @@ function showRecordingIndicator() {
   document.body.appendChild(recordingIndicator);
 }
 
-function hideRecordingIndicator() {
+window.voiceDictationExtension.hideRecordingIndicator = function hideRecordingIndicator() {
   if (recordingIndicator) {
     // Clean up event listener
     if (recordingIndicator.keyHandler) {

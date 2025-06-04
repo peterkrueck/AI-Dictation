@@ -131,10 +131,17 @@ Manual testing is required for Chrome extensions:
   - **Brighter Success Notifications** - Enhanced clipboard success notifications with brighter green color (#00C851) for better visibility
   - **Multilingual Force Mode Messages** - Force Mode clipboard notifications available in both English and German
   - **Simplified Force Mode Workflow** - Eliminates text field detection complexity when Force Mode is active, ensuring consistent clipboard behavior
-- **Version 1.3.1 Updates**:
+- **Version 1.4 Updates**:
   - **Fixed JSON Output Issue** - Added `response_format: { type: 'json_object' }` parameter to Groq API request to eliminate thinking tokens in output
   - **Clean Text Output** - Extension now properly outputs only the formatted text without JSON wrappers or thinking tokens
   - **Consistent API Behavior** - Aligned Chrome extension with macOS Shortcuts version for consistent JSON response handling
+  - **ChromeOS Keyboard Shortcuts Fix** - Fixed Ctrl+Shift+1 not working reliably on ChromeOS devices
+  - **Enhanced Global Event Handling** - Added ChromeOS-specific keyboard event capture for better compatibility
+  - **Improved ESC/Enter Key Handling** - Fixed recording stop keys (ESC/Enter) not working during dictation on ChromeOS
+  - **Added Notification Support** - Users now receive clear notifications when trying to use extension on restricted pages
+  - **Better Error Messages** - Enhanced error handling with user-friendly notifications for common issues
+  - **Content Script Injection** - Improved reliability of content script loading with verification and timeout handling
+  - **Icon Support Added** - Added proper extension icons for notifications and Chrome Web Store
 
 ## Debugging Features
 

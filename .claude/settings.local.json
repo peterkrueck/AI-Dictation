@@ -5,7 +5,10 @@
       "Bash(ls:*)",
       "Bash(mkdir:*)",
       "Bash(grep:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(python3:*)",
+      "Bash(chmod:*)",
+      "Bash(./create_simple_icons.sh:*)"
     ]
   },
   "enableAllProjectMcpServers": false

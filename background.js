@@ -7,7 +7,7 @@ let recordingStartTime = null;
 let countdownInterval = null;
 
 // Debug logging system
-const DEBUG = true; // Set to false in production
+const DEBUG = false; // Set to false in production
 
 function debugLog(context, message, data = null) {
   if (!DEBUG) return;
@@ -110,8 +110,13 @@ async function ensureOffscreenDocument() {
 // Ensure content script is loaded before sending messages
 async function ensureContentScriptLoaded(tabId) {
   try {
-    // Try to ping content script
-    const response = await chrome.tabs.sendMessage(tabId, { action: 'ping' });
+    // Try to ping content script with timeout
+    const pingPromise = chrome.tabs.sendMessage(tabId, { action: 'ping' });
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Ping timeout')), 1000)
+    );
+    
+    const response = await Promise.race([pingPromise, timeoutPromise]);
     debugLog('CONTENT_SCRIPT', 'Content script is responsive', response);
     return true;
   } catch (error) {
@@ -124,8 +129,16 @@ async function ensureContentScriptLoaded(tabId) {
       });
       debugLog('CONTENT_SCRIPT', 'Content script injected successfully');
       // Wait a bit for script to initialize
-      await new Promise(resolve => setTimeout(resolve, 100));
-      return true;
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Verify it's loaded now
+      try {
+        await chrome.tabs.sendMessage(tabId, { action: 'ping' });
+        return true;
+      } catch (verifyError) {
+        debugLog('CONTENT_SCRIPT', 'Content script still not responsive after injection');
+        return false;
+      }
     } catch (injectError) {
       debugLog('CONTENT_SCRIPT', 'Failed to inject content script', injectError.message);
       return false;
@@ -143,16 +156,64 @@ chrome.commands.onCommand.addListener(async (command) => {
       if (tab) {
         debugLog('SHORTCUT', 'Active tab found', { id: tab.id, url: tab.url });
         
+        // Check if it's a restricted URL
+        if (tab.url.startsWith('chrome://') || 
+            tab.url.startsWith('chrome-extension://') ||
+            tab.url.startsWith('edge://') ||
+            tab.url.startsWith('about:') ||
+            tab.url.startsWith('view-source:')) {
+          
+          debugLog('SHORTCUT', 'Restricted URL, showing notification');
+          
+          // Show notification for restricted pages
+          chrome.notifications.create('restricted-page', {
+            type: 'basic',
+            iconUrl: 'icons/icon48.png',
+            title: 'Voice Dictation',
+            message: 'Voice dictation cannot be used on this page. Please navigate to a regular website.',
+            priority: 2
+          });
+          return;
+        }
+        
         const loaded = await ensureContentScriptLoaded(tab.id);
         if (loaded) {
           chrome.tabs.sendMessage(tab.id, {action: 'startDictation'});
         } else {
-          // Could not load content script - maybe show a notification
+          // Show notification if content script couldn't be loaded
           debugLog('SHORTCUT', 'Could not ensure content script');
+          
+          chrome.notifications.create('script-error', {
+            type: 'basic',
+            iconUrl: 'icons/icon48.png',
+            title: 'Voice Dictation',
+            message: 'Could not start voice dictation. Please try refreshing the page.',
+            priority: 2
+          });
         }
+      } else {
+        debugLog('SHORTCUT', 'No active tab found');
+        
+        // Show notification if no active tab
+        chrome.notifications.create('no-tab', {
+          type: 'basic',
+          iconUrl: 'icons/icon48.png',
+          title: 'Voice Dictation',
+          message: 'Please click on a webpage first before using voice dictation.',
+          priority: 2
+        });
       }
     } catch (error) {
       debugLog('SHORTCUT', 'Error handling shortcut', error);
+      
+      // Show generic error notification
+      chrome.notifications.create('general-error', {
+        type: 'basic',
+        iconUrl: 'icons/icon48.png',
+        title: 'Voice Dictation Error',
+        message: 'An error occurred. Please try again.',
+        priority: 2
+      });
     }
   }
 });
@@ -237,6 +298,7 @@ async function startRecording(tab, sendResponse) {
       debugLog('RECORDING', 'Message sent to offscreen document');
     }).catch(error => {
       debugLog('RECORDING', 'Failed to send message to offscreen', error.message);
+      throw new Error('Could not start recording. Please try again.');
     });
     
     // Set timeout
