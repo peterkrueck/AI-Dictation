@@ -5,7 +5,7 @@ let currentLanguage = 'en';
 let isStoppingRecording = false; // Prevent double-calling stopRecording
 
 // Debug mode
-const DEBUG = true;
+const DEBUG = false;
 
 function debugLog(message, data = null) {
   if (!DEBUG) return;

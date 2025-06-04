@@ -7,7 +7,7 @@ let recordingStartTime = null;
 let countdownInterval = null;
 
 // Debug logging system
-const DEBUG = true; // Set to false in production
+const DEBUG = false; // Set to false in production
 
 function debugLog(context, message, data = null) {
   if (!DEBUG) return;
