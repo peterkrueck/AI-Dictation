@@ -10,7 +10,12 @@
       "Bash(chmod:*)",
       "Bash(./create_simple_icons.sh:*)",
       "Bash(git rm:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npm install:*)",
+      "Bash(node:*)",
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "Bash(rg:*)"
     ]
   },
   "enableAllProjectMcpServers": false
