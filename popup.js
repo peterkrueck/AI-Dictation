@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
           
           console.log('=== Voice Dictation Debug Logs ===');
-          console.log('Extension Version: 1.2.3');
+          console.log('Extension Version: 1.4.2');
           console.log('Time:', new Date().toISOString());
           console.log('Total Logs:', logs ? logs.length : 0);
           console.log('');

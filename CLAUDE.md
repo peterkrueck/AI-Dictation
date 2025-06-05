@@ -154,6 +154,11 @@ Manual testing is required for Chrome extensions:
   - **Improved Translation Strings** - More prominent keyboard shortcut instructions in recording indicator
   - **Proper Event Cleanup** - All keyboard event listeners are properly removed when recording stops
   - **Reliable Key Detection** - ESC and Enter keys now work consistently in Force Mode on ChromeOS
+- **Version 1.4.2 Updates**:
+  - **Fixed Force Mode Text Field Requirement** - Force Mode now works without requiring a text field to be selected
+  - **Enhanced Force Mode Logic** - When Force Mode is enabled, text field detection is completely bypassed
+  - **Improved User Experience** - Users can now dictate anywhere immediately when Force Mode is active
+  - **Keyboard Shortcut Compatibility** - Ctrl+Shift+1 now works everywhere with Force Mode, no text field needed
 
 ## Debugging Features
 

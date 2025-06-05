@@ -191,22 +191,26 @@ window.voiceDictationExtension.startDictation = function startDictation() {
   // Reset stopping flag
   isStoppingRecording = false;
   
-  let targetElement = findBestTextTarget();
-  
-  // Handle Google Docs special case
-  if (targetElement === 'google-docs-special-case') {
-    // For Google Docs, we'll proceed with the recording
-    window.voiceDictationTarget = 'google-docs-special-case';
-  } else if (!targetElement && !forceMode) {
-    showNotification(t('noTextFieldError'), 'error');
-    return;
-  } else {
-    // Store the element or null for clipboard fallback
-    window.voiceDictationTarget = targetElement;
-  }
-  
-  if (!targetElement && forceMode) {
+  // In force mode, we don't need a text field at all
+  if (forceMode) {
+    debugLog('Force mode enabled, skipping text field detection');
+    window.voiceDictationTarget = null; // Will use clipboard
     showNotification(t('forceModeInfo'), 'info');
+  } else {
+    // Normal mode - require a text field
+    let targetElement = findBestTextTarget();
+    
+    // Handle Google Docs special case
+    if (targetElement === 'google-docs-special-case') {
+      // For Google Docs, we'll proceed with the recording
+      window.voiceDictationTarget = 'google-docs-special-case';
+    } else if (!targetElement) {
+      showNotification(t('noTextFieldError'), 'error');
+      return;
+    } else {
+      // Store the element for direct insertion
+      window.voiceDictationTarget = targetElement;
+    }
   }
   
   // Show recording indicator
