@@ -159,6 +159,10 @@ Manual testing is required for Chrome extensions:
   - **Enhanced Force Mode Logic** - When Force Mode is enabled, text field detection is completely bypassed
   - **Improved User Experience** - Users can now dictate anywhere immediately when Force Mode is active
   - **Keyboard Shortcut Compatibility** - Ctrl+Shift+1 now works everywhere with Force Mode, no text field needed
+- **Version 1.4.3 Updates**:
+  - **Complete Force Mode Fix** - Removed residual text field check that was still blocking Force Mode functionality
+  - **True Anywhere Dictation** - When Force Mode is enabled, dictation now starts immediately without any text field requirements
+  - **Streamlined Code Path** - Force Mode now completely bypasses the text field detection logic for faster startup
 
 ## Debugging Features
 

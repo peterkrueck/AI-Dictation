@@ -196,6 +196,7 @@ window.voiceDictationExtension.startDictation = function startDictation() {
     debugLog('Force mode enabled, skipping text field detection');
     window.voiceDictationTarget = null; // Will use clipboard
     showNotification(t('forceModeInfo'), 'info');
+    // Proceed directly with recording - no text field needed
   } else {
     // Normal mode - require a text field
     let targetElement = findBestTextTarget();
