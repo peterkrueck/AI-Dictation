@@ -49,7 +49,7 @@ Voice Dictation/
 ├── popup.html                     # Extension popup interface HTML
 ├── popup.js                       # Extension popup interface logic with dynamic language switching
 ├── config.html                    # Settings page HTML
-├── config.js                      # Settings page with custom model path, system prompt support, and language selector
+├── config.js                      # Settings page with custom model path, personalization settings, and language selector
 ├── styles.css                     # Shared styles for popup and config pages
 ├── translations.js                # Centralized translation system for English, German, Spanish, and French
 ├── _locales/                      # Chrome locale files for extension name/description
@@ -74,7 +74,8 @@ Voice Dictation/
 - **API Integration**: Uses Groq API with Whisper Large V3 Turbo for transcription and configurable LLM models for text formatting
 - **JSON Response Format**: LLM now returns structured JSON responses for consistent output parsing
 - **Custom Models**: Supports both predefined models (including Qwen QWQ 32B) and custom model paths for future Groq model compatibility
-- **Custom System Prompts**: Fully customizable AI instructions with reset to default functionality
+- **Automated System Prompt**: Technical AI instructions are now hidden from users and automatically applied
+- **User Personalization**: Simple interface for adding personal information (name, addresses, custom spellings) without technical complexity
 - **Enhanced System Prompt**: Prevents AI from interpreting dictated text as commands - treats all input as content to be formatted
 - **Offscreen Document**: Uses Chrome's offscreen API to handle audio recording in service worker context
 - **Clipboard-Only Approach**: All dictated text is copied to clipboard for maximum reliability and flexibility
@@ -104,6 +105,10 @@ Manual testing is required for Chrome extensions:
 12. Ensure language preference syncs across devices
 13. Test double-press prevention by rapidly pressing Ctrl+Shift+1 multiple times and verify only one recording starts
 14. Verify warning notification appears when attempting to start recording while one is already active
+15. Test personalization settings (name, addresses, custom spellings) are saved and applied to dictations
+16. Verify personalization fields work correctly in all supported languages
+17. Test that technical system prompt is automatically combined with user preferences
+18. Ensure settings interface is user-friendly and hides technical complexity
 
 ## Recent Fixes
 
@@ -194,6 +199,13 @@ Manual testing is required for Chrome extensions:
   - **User Feedback** - Added multilingual warning notifications when user attempts to start recording while one is already active
   - **Robust State Reset** - Recording active flag is properly reset on completion, error, or recording stop to ensure clean state management
   - **Enhanced UX** - Users now receive clear feedback instead of confusing double-recording behavior when accidentally double-pressing shortcut
+- **Version 2.1.0 Updates**:
+  - **Simplified Personalization Interface** - Replaced complex system prompt editor with user-friendly personalization fields
+  - **Automated Technical Prompt** - All technical AI instructions are now hidden from users and automatically applied
+  - **Personal Information Fields** - Added fields for full name, business name, home/work addresses, and custom spellings
+  - **Intelligent Prompt Combination** - System automatically combines technical instructions with user personalization preferences
+  - **Cleaner Settings UI** - Removed technical complexity from user interface while maintaining full functionality
+  - **Generic Template** - Removed hardcoded personal information to make extension suitable for all users
 
 ## Debugging Features
 

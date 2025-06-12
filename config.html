@@ -60,17 +60,37 @@
     </div>
     
     <div class="config-section">
-      <h2 data-i18n="systemPromptTitle">AI System Prompt Customization</h2>
+      <h2 data-i18n="personalizationTitle">Personalization Settings</h2>
+      <p data-i18n="personalizationHelp">Add your personal information for more accurate dictation corrections. All fields are optional.</p>
       
       <div class="form-group">
-        <label for="system-prompt" data-i18n="systemPromptLabel">Custom System Prompt:</label>
-        <textarea id="system-prompt" rows="8" placeholder="Enter your custom system prompt instructions for the AI..." data-i18n-placeholder="systemPromptPlaceholder"></textarea>
-        <small data-i18n="systemPromptHelp">Customize how the AI formats and processes your dictated text. Leave blank to use default behavior.</small>
+        <label for="full-name" data-i18n="fullNameLabel">Full Name:</label>
+        <input type="text" id="full-name" placeholder="e.g., John Smith" data-i18n-placeholder="fullNamePlaceholder" />
+        <small data-i18n="fullNameHelp">Your full name for accurate spelling when dictating</small>
       </div>
       
       <div class="form-group">
-        <button id="reset-prompt-btn" class="reset-btn" data-i18n="resetPromptButton">Reset to Default</button>
-        <small data-i18n="resetPromptHelp">Click to restore the default system prompt used by the extension</small>
+        <label for="business-name" data-i18n="businessNameLabel">Business/Company Name:</label>
+        <input type="text" id="business-name" placeholder="e.g., Acme Corporation" data-i18n-placeholder="businessNamePlaceholder" />
+        <small data-i18n="businessNameHelp">Your company or business name</small>
+      </div>
+      
+      <div class="form-group">
+        <label for="home-address" data-i18n="homeAddressLabel">Home Address:</label>
+        <input type="text" id="home-address" placeholder="e.g., 123 Main Street, City, Country" data-i18n-placeholder="homeAddressPlaceholder" />
+        <small data-i18n="homeAddressHelp">Your home address for accurate formatting</small>
+      </div>
+      
+      <div class="form-group">
+        <label for="work-address" data-i18n="workAddressLabel">Work Address:</label>
+        <input type="text" id="work-address" placeholder="e.g., 456 Business Ave, City, Country" data-i18n-placeholder="workAddressPlaceholder" />
+        <small data-i18n="workAddressHelp">Your work or office address</small>
+      </div>
+      
+      <div class="form-group">
+        <label for="custom-spellings" data-i18n="customSpellingsLabel">Custom Spellings & Terms:</label>
+        <textarea id="custom-spellings" rows="3" placeholder="e.g., MyCompany Ltd, Müller, specialized terms..." data-i18n-placeholder="customSpellingsPlaceholder"></textarea>
+        <small data-i18n="customSpellingsHelp">Special names, terms, or spellings that should be preserved exactly (one per line or comma-separated)</small>
       </div>
     </div>
     
