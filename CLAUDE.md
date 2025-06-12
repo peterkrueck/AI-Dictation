@@ -84,6 +84,7 @@ Voice Dictation/
 - **Keyboard Shortcut**: Default is Ctrl+Shift+1, configurable via chrome://extensions/shortcuts
 - **Extended Token Support**: Supports up to 6000 tokens for longer dictations
 - **Enhanced Recording**: 60-second recording duration with countdown warning in the last 10 seconds
+- **Double-Press Prevention**: Prevents accidental double keyboard shortcut presses with debouncing and active recording state management
 - **Debug Button in Settings**: Debug logs button moved to settings page for cleaner main UI
 
 ## Testing Approach
@@ -101,6 +102,8 @@ Manual testing is required for Chrome extensions:
 10. Test language switching between English and German
 11. Verify all UI elements update correctly when switching languages
 12. Ensure language preference syncs across devices
+13. Test double-press prevention by rapidly pressing Ctrl+Shift+1 multiple times and verify only one recording starts
+14. Verify warning notification appears when attempting to start recording while one is already active
 
 ## Recent Fixes
 
@@ -184,6 +187,13 @@ Manual testing is required for Chrome extensions:
   - **Complete Force Mode Fix** - Removed residual text field check that was still blocking Force Mode functionality
   - **True Anywhere Dictation** - When Force Mode is enabled, dictation now starts immediately without any text field requirements
   - **Streamlined Code Path** - Force Mode now completely bypasses the text field detection logic for faster startup
+- **Version 2.0.1 Updates**:
+  - **Double-Press Prevention** - Added protection against accidental double keyboard shortcut presses (Ctrl+Shift+1) causing multiple recording attempts
+  - **Recording State Management** - Implemented `isRecordingActive` flag to prevent new recordings while one is already in progress
+  - **Debouncing Logic** - Added 1-second debounce period to ignore rapid double-press events within RECORDING_DEBOUNCE_MS timeframe
+  - **User Feedback** - Added multilingual warning notifications when user attempts to start recording while one is already active
+  - **Robust State Reset** - Recording active flag is properly reset on completion, error, or recording stop to ensure clean state management
+  - **Enhanced UX** - Users now receive clear feedback instead of confusing double-recording behavior when accidentally double-pressing shortcut
 
 ## Debugging Features
 

@@ -2,6 +2,9 @@
 let recordingIndicator = null;
 let currentLanguage = 'en';
 let isStoppingRecording = false; // Prevent double-calling stopRecording
+let isRecordingActive = false; // Prevent double-press recordings
+let lastRecordingStart = 0; // Debounce rapid key presses
+const RECORDING_DEBOUNCE_MS = 1000; // Prevent double-press within 1 second
 
 // Debug mode
 const DEBUG = false;
@@ -23,6 +26,7 @@ const translations = {
   en: {
     recordingIndicator: "🎤 Recording... Press ENTER or ESC to stop",
     recordingTimeRemaining: "{seconds}s remaining",
+    recordingAlreadyActive: "Recording already in progress! Please wait for current recording to finish.",
     noTextFieldError: "Please click in a text field first, or enable \"Force Mode\" in the extension popup to dictate anywhere.",
     forceModeInfo: "Force Mode: Text will be copied to clipboard",
     textCopiedSuccess: "✅ Text copied to clipboard! Press Ctrl+V to paste.",
@@ -36,6 +40,7 @@ const translations = {
   de: {
     recordingIndicator: "🎤 Aufnahme... ENTER oder ESC zum Beenden",
     recordingTimeRemaining: "Noch {seconds}s",
+    recordingAlreadyActive: "Aufnahme bereits aktiv! Bitte warten Sie, bis die aktuelle Aufnahme beendet ist.",
     noTextFieldError: "Bitte erst in ein Textfeld klicken oder \"Überall-Modus\" im Erweiterungs-Popup aktivieren, um überall zu diktieren.",
     forceModeInfo: "Überall-Modus: Text wird in Zwischenablage kopiert",
     textCopiedSuccess: "✅ Text in Zwischenablage kopiert! Strg+V zum Einfügen drücken.",
@@ -45,6 +50,34 @@ const translations = {
     insertError: "Konnte Text nicht einfügen",
     extensionError: "Erweiterungsfehler: {error}",
     error: "Fehler: {error}"
+  },
+  es: {
+    recordingIndicator: "🎤 Grabando... Presiona ENTER o ESC para detener",
+    recordingTimeRemaining: "Quedan {seconds}s",
+    recordingAlreadyActive: "¡Grabación ya en progreso! Por favor espera a que termine la grabación actual.",
+    noTextFieldError: "Por favor haz clic en un campo de texto primero, o habilita \"Modo Fuerza\" en la ventana emergente de la extensión para dictar en cualquier lugar.",
+    forceModeInfo: "Modo Fuerza: El texto se copiará al portapapeles",
+    textCopiedSuccess: "✅ Texto copiado al portapapeles! Presiona Ctrl+V para pegar.",
+    forceModeClipboardSuccess: "✅ Salida copiada al portapapeles! Por favor inserta con Ctrl+V",
+    clipboardError: "No se pudo copiar al portapapeles. Texto: {text}",
+    directInsertError: "No se pudo insertar directamente. Texto copiado al portapapeles - presiona Ctrl+V para pegar.",
+    insertError: "No se pudo insertar el texto",
+    extensionError: "Error de extensión: {error}",
+    error: "Error: {error}"
+  },
+  fr: {
+    recordingIndicator: "🎤 Enregistrement... Appuyez sur ENTRÉE ou ÉCHAP pour arrêter",
+    recordingTimeRemaining: "{seconds}s restantes",
+    recordingAlreadyActive: "Enregistrement déjà en cours ! Veuillez attendre que l'enregistrement actuel soit terminé.",
+    noTextFieldError: "Veuillez d'abord cliquer dans un champ de texte, ou activez \"Mode Force\" dans la popup de l'extension pour dicter n'importe où.",
+    forceModeInfo: "Mode Force: Le texte sera copié dans le presse-papiers",
+    textCopiedSuccess: "✅ Texte copié dans le presse-papiers ! Appuyez sur Ctrl+V pour coller.",
+    forceModeClipboardSuccess: "✅ Sortie copiée dans le presse-papiers ! Veuillez insérer via Ctrl+V",
+    clipboardError: "Impossible de copier dans le presse-papiers. Texte : {text}",
+    directInsertError: "Impossible d'insérer directement. Texte copié dans le presse-papiers - appuyez sur Ctrl+V pour coller.",
+    insertError: "Impossible d'insérer le texte",
+    extensionError: "Erreur d'extension : {error}",
+    error: "Erreur : {error}"
   }
 };
 
@@ -115,6 +148,25 @@ window.voiceDictationExtension = window.voiceDictationExtension || {};
 window.voiceDictationExtension.startDictation = function startDictation() {
   debugLog('Starting dictation (clipboard mode)');
   
+  const now = Date.now();
+  
+  // Check if recording is already active
+  if (isRecordingActive) {
+    debugLog('Recording already active, showing warning');
+    showNotification(t('recordingAlreadyActive'), 'warning');
+    return;
+  }
+  
+  // Debounce rapid key presses
+  if (now - lastRecordingStart < RECORDING_DEBOUNCE_MS) {
+    debugLog('Ignoring rapid double-press within debounce period');
+    return;
+  }
+  
+  // Set recording as active and update timestamp
+  isRecordingActive = true;
+  lastRecordingStart = now;
+  
   // Reset stopping flag
   isStoppingRecording = false;
   
@@ -129,6 +181,9 @@ window.voiceDictationExtension.startDictation = function startDictation() {
   // Request recording from background script
   chrome.runtime.sendMessage({action: 'startRecording'}, (response) => {
     window.voiceDictationExtension.hideRecordingIndicator();
+    
+    // Reset recording active flag when recording completes (success or error)
+    isRecordingActive = false;
     
     debugLog('Received response from background', response);
     
@@ -357,7 +412,8 @@ function showNotification(message, type = 'info') {
   const colors = {
     error: '#FF4444',
     success: '#00C851',
-    info: '#2196F3'
+    info: '#2196F3',
+    warning: '#FF8C00'
   };
   
   notification.style.cssText = `

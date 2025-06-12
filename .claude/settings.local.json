@@ -15,7 +15,10 @@
       "Bash(node:*)",
       "Bash(git add:*)",
       "Bash(git push:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "mcp__gemini__consult_gemini"
     ]
   },
   "enableAllProjectMcpServers": false
