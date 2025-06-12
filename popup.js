@@ -25,8 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       dictateBtn: document.getElementById('dictate-btn'),
       settingsLink: document.getElementById('settings-link'),
       statusText: document.getElementById('status-text'),
-      statusDot: document.querySelector('.status-dot'),
-      debugBtn: document.getElementById('debug-btn')
+      statusDot: document.querySelector('.status-dot')
     };
     
     // Check if all elements exist
@@ -91,47 +90,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
     
-    // Handle debug button (always visible)
-    if (elements.debugBtn) {
-      elements.debugBtn.addEventListener('click', async () => {
-        console.log('Debug button clicked');
-        chrome.runtime.sendMessage({ action: 'getDebugLogs' }, async (logs) => {
-          if (chrome.runtime.lastError) {
-            console.error('Error getting debug logs:', chrome.runtime.lastError);
-            return;
-          }
-          
-          console.log('=== Voice Dictation Debug Logs ===');
-          console.log('Extension Version: 1.4.3');
-          console.log('Time:', new Date().toISOString());
-          console.log('Total Logs:', logs ? logs.length : 0);
-          console.log('');
-          
-          if (logs && logs.length > 0) {
-          logs.forEach(log => {
-            console.log(`[${log.timestamp}] [${log.context}] ${log.message}`, 
-              log.data ? JSON.parse(log.data) : '');
-          });
-          
-          // Copy to clipboard
-          const debugText = logs.map(log => 
-            `[${log.timestamp}] [${log.context}] ${log.message} ${log.data || ''}`
-          ).join('\n');
-          
-          navigator.clipboard.writeText(debugText).then(async () => {
-            showNotification(await t('debugLogsCopied'), 'success');
-          }).catch(async () => {
-            showNotification(await t('debugLogsInConsole'), 'success');
-          });
-        } else {
-          console.log('No debug logs found');
-        }
-        
-        console.log('=== End Debug Logs ===');
-        });
-      });
-    }
-    
     // Handle dictation button click
     if (elements.dictateBtn) {
       elements.dictateBtn.addEventListener('click', () => {
@@ -172,8 +130,6 @@ async function initializeUI(elements) {
   if (elements.dictateBtn) elements.dictateBtn.innerHTML = 'Start Dictation <span class="shortcut">Ctrl+Shift+1</span>';
   const settingsLink = document.querySelector('#settings-link');
   if (settingsLink) settingsLink.textContent = '⚙️ Settings';
-  const debugBtn = document.querySelector('#debug-btn');
-  if (debugBtn) debugBtn.textContent = '🐛 View Debug Logs';
 }
 
 async function updateUITranslations(elements) {
@@ -195,9 +151,6 @@ async function updateUITranslations(elements) {
         
         const settingsLinkEl = document.querySelector('#settings-link');
         if (settingsLinkEl) settingsLinkEl.textContent = await t('settingsLink');
-        
-        const debugBtnEl = document.querySelector('#debug-btn');
-        if (debugBtnEl) debugBtnEl.textContent = await t('debugButton');
         
         // Update tips
         const tipsP = document.querySelector('.tips p');

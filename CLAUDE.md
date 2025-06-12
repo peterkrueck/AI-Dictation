@@ -84,7 +84,7 @@ Voice Dictation/
 - **Keyboard Shortcut**: Default is Ctrl+Shift+1, configurable via chrome://extensions/shortcuts
 - **Extended Token Support**: Supports up to 6000 tokens for longer dictations
 - **Enhanced Recording**: 60-second recording duration with countdown warning in the last 10 seconds
-- **Always-Visible Debug Button**: Debug logs are now accessible via a permanent button in the popup (no triple-click needed)
+- **Debug Button in Settings**: Debug logs button moved to settings page for cleaner main UI
 
 ## Testing Approach
 
@@ -126,7 +126,7 @@ Manual testing is required for Chrome extensions:
   - **Fixed keyboard shortcut** - Now reliably works with automatic content script injection
   - **Added Force Mode** - Toggle to dictate anywhere with clipboard fallback when no text field is available
   - **Extended recording time** - Increased from 30 to 60 seconds with countdown warning
-  - **Always-visible debug button** - No more triple-clicking needed to access debug logs
+  - **Debug button added** - Debug logs button added to settings page for troubleshooting
   - **Improved text field detection** - Better support for finding and tracking text input elements
 - **Version 1.2 Updates**:
   - **Multilingual Support** - Full German and English language support
@@ -199,6 +199,6 @@ The extension now includes comprehensive debugging capabilities to help diagnose
 
 ### Using Debug Mode
 
-1. **View Logs**: Click the "🐛 View Debug Logs" button in the popup and check browser console (F12)
+1. **View Logs**: Click the "🐛 View Debug Logs" button in the settings page (config.html) and check browser console (F12)
 2. **Production**: Set `DEBUG = false` in background.js and content.js before distribution
 3. **Troubleshooting**: Share console logs when reporting issues for faster diagnosis - logs are automatically copied to clipboard

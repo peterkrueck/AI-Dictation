@@ -56,7 +56,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             saveStatus: document.getElementById('save-status'),
             systemPromptTextarea: document.getElementById('system-prompt'),
             resetPromptBtn: document.getElementById('reset-prompt-btn'),
-            languageSelect: document.getElementById('language')
+            languageSelect: document.getElementById('language'),
+            debugBtn: document.getElementById('debug-btn')
         };
         
         // Check if all elements exist
@@ -117,6 +118,47 @@ document.addEventListener('DOMContentLoaded', async () => {
             elements.systemPromptTextarea.value = DEFAULT_SYSTEM_PROMPT;
             showStatus(await t('resetPromptSuccess'), 'success');
         });
+        
+        // Handle debug button
+        if (elements.debugBtn) {
+            elements.debugBtn.addEventListener('click', async () => {
+                console.log('Debug button clicked');
+                chrome.runtime.sendMessage({ action: 'getDebugLogs' }, async (logs) => {
+                    if (chrome.runtime.lastError) {
+                        console.error('Error getting debug logs:', chrome.runtime.lastError);
+                        return;
+                    }
+                    
+                    console.log('=== Voice Dictation Debug Logs ===');
+                    console.log('Extension Version: 2.0.0');
+                    console.log('Time:', new Date().toISOString());
+                    console.log('Total Logs:', logs ? logs.length : 0);
+                    console.log('');
+                    
+                    if (logs && logs.length > 0) {
+                        logs.forEach(log => {
+                            console.log(`[${log.timestamp}] [${log.context}] ${log.message}`, 
+                                log.data ? JSON.parse(log.data) : '');
+                        });
+                        
+                        // Copy to clipboard
+                        const debugText = logs.map(log => 
+                            `[${log.timestamp}] [${log.context}] ${log.message} ${log.data || ''}`
+                        ).join('\n');
+                        
+                        navigator.clipboard.writeText(debugText).then(async () => {
+                            showStatus(await t('debugLogsCopied'), 'success');
+                        }).catch(async () => {
+                            showStatus(await t('debugLogsInConsole'), 'success');
+                        });
+                    } else {
+                        console.log('No debug logs found');
+                    }
+                    
+                    console.log('=== End Debug Logs ===');
+                });
+            });
+        }
     
         // Save settings
         elements.saveBtn.addEventListener('click', async () => {

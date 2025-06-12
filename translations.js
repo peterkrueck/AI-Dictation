@@ -106,6 +106,10 @@ export const translations = {
     privacyDescription: "All processing, including the URL of the active page for contextual formatting, is done via direct API calls to Groq. The extension does not store your dictation audio or full URLs. Please refer to Groq's privacy policy for how they handle API data.",
     madeWith: "Made with ❤️ for Dad's Chromebook",
     
+    // Debug
+    debugTitle: "Debug Tools",
+    debugHelp: "Click to output debug logs to browser console for troubleshooting",
+    
     // Content script messages
     recordingIndicator: "Recording... Press Enter/Esc or click to stop",
     recordingTimeRemaining: "{seconds}s remaining",
@@ -221,6 +225,10 @@ export const translations = {
     privacy: "Datenschutz:",
     privacyDescription: "Die gesamte Verarbeitung, einschließlich der URL der aktiven Seite zur kontextbezogenen Formatierung, erfolgt über direkte API-Aufrufe an Groq. Die Erweiterung speichert weder Ihre Diktat-Audioaufnahmen noch vollständige URLs. Informationen zum Umgang mit API-Daten durch Groq entnehmen Sie bitte deren Datenschutzrichtlinien.",
     madeWith: "Mit ❤️ für Papas Chromebook gemacht",
+    
+    // Debug
+    debugTitle: "Debug-Werkzeuge",
+    debugHelp: "Klicken Sie, um Debug-Logs zur Fehlerbehebung in der Browser-Konsole auszugeben",
     
     // Content script messages
     recordingIndicator: "Aufnahme... Enter/Esc drücken oder klicken zum Beenden",
@@ -338,6 +346,10 @@ export const translations = {
     privacyDescription: "Todo el procesamiento, incluida la URL de la página activa para el formato contextual, se realiza a través de llamadas API directas a Groq. La extensión no almacena tu audio de dictado ni las URL completas. Consulta la política de privacidad de Groq para saber cómo manejan los datos de la API.",
     madeWith: "Hecho con ❤️ para todos los usuarios de Chrome",
     
+    // Debug
+    debugTitle: "Herramientas de Depuración",
+    debugHelp: "Haz clic para mostrar los registros de depuración en la consola del navegador para solucionar problemas",
+    
     // Content script messages
     recordingIndicator: "Grabando... Presiona Enter/Esc o haz clic para detener",
     recordingTimeRemaining: "Quedan {seconds}s",
@@ -453,6 +465,10 @@ export const translations = {
     privacy: "Confidentialité :",
     privacyDescription: "Tout le traitement, y compris l'URL de la page active pour le formatage contextuel, est effectué via des appels API directs à Groq. L'extension ne stocke pas vos enregistrements audio de dictée ni les URL complètes. Veuillez consulter la politique de confidentialité de Groq pour savoir comment ils gèrent les données API.",
     madeWith: "Fait avec ❤️ pour tous les utilisateurs de Chrome",
+    
+    // Debug
+    debugTitle: "Outils de Débogage",
+    debugHelp: "Cliquez pour afficher les journaux de débogage dans la console du navigateur pour le dépannage",
     
     // Content script messages
     recordingIndicator: "Enregistrement... Appuyez sur Entrée/Échap ou cliquez pour arrêter",
