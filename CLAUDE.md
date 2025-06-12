@@ -32,21 +32,42 @@ This is a static Chrome extension project with no build process required. To dev
 
 3. **Package for distribution**:
    ```bash
-   zip -r voice-dictation-extension.zip manifest.json background.js offscreen.html offscreen.js content.js popup.html popup.js config.html config.js styles.css translations.js _locales -x ".*" -x "__MACOSX" -x "*.md"
+   zip -r voice-dictation-extension.zip manifest.json background.js offscreen.html offscreen.js content.js popup.html popup.js config.html config.js styles.css translations.js README.md _locales icons -x ".*" -x "__MACOSX" -x "CLAUDE.md"
    ```
 
 ## Project Structure
 
-- `manifest.json` - Chrome extension manifest (v3) with offscreen permission and locale support
-- `background.js` - Service worker managing offscreen document and API calls
-- `offscreen.html/js` - Offscreen document for audio recording via MediaRecorder
-- `content.js` - Content script for UI and text insertion (supports Google search) with multilingual support
-- `popup.html/js` - Extension popup interface with dynamic language switching
-- `config.html/js` - Settings page with custom model path, system prompt support, and language selector
-- `styles.css` - Shared styles for popup and config pages
-- `translations.js` - Centralized translation system for English and German
-- `_locales/` - Chrome locale files for extension name/description (en, de)
-- `voice-dictation-extension.zip` - Packaged extension ready for distribution
+```
+Voice Dictation/
+├── CLAUDE.md                      # Master AI context file (this file)
+├── README.md                      # User-facing documentation 
+├── manifest.json                  # Chrome extension manifest (v3) with offscreen permission and locale support
+├── background.js                  # Service worker managing offscreen document and API calls
+├── offscreen.html                 # Offscreen document for audio recording
+├── offscreen.js                   # Offscreen document audio recording logic via MediaRecorder
+├── content.js                     # Content script for UI and clipboard integration with multilingual support
+├── popup.html                     # Extension popup interface HTML
+├── popup.js                       # Extension popup interface logic with dynamic language switching
+├── config.html                    # Settings page HTML
+├── config.js                      # Settings page with custom model path, system prompt support, and language selector
+├── styles.css                     # Shared styles for popup and config pages
+├── translations.js                # Centralized translation system for English, German, Spanish, and French
+├── _locales/                      # Chrome locale files for extension name/description
+│   ├── en/
+│   │   └── messages.json          # English locale
+│   ├── de/
+│   │   └── messages.json          # German locale
+│   ├── es/
+│   │   └── messages.json          # Spanish locale
+│   └── fr/
+│       └── messages.json          # French locale
+├── icons/                         # Extension icons for Chrome Web Store and notifications
+│   ├── icon16.png                 # 16x16 icon
+│   ├── icon48.png                 # 48x48 icon
+│   ├── icon128.png                # 128x128 icon
+│   └── icon.svg                   # Source SVG icon
+└── docs/                          # Documentation and archived versions
+```
 
 ## Key Implementation Details
 
@@ -56,12 +77,12 @@ This is a static Chrome extension project with no build process required. To dev
 - **Custom System Prompts**: Fully customizable AI instructions with reset to default functionality
 - **Enhanced System Prompt**: Prevents AI from interpreting dictated text as commands - treats all input as content to be formatted
 - **Offscreen Document**: Uses Chrome's offscreen API to handle audio recording in service worker context
-- **Context-Aware Formatting**: Detects the current website/app and adjusts writing style accordingly (e.g., formal for Gmail, casual for Slack, works on Google.com)
+- **Clipboard-Only Approach**: All dictated text is copied to clipboard for maximum reliability and flexibility
+- **Context-Aware Formatting**: Detects the current website/app and adjusts writing style accordingly (e.g., formal for Gmail, casual for Slack)
 - **Chrome Storage Sync**: Settings automatically sync across devices using `chrome.storage.sync`
-- **Multilingual Support**: Full German and English language support with automatic language detection and synced preferences
-- **Keyboard Shortcut**: Default is Ctrl+Shift+1, configurable via chrome://extensions/shortcuts - now with automatic content script injection
-- **Extended Token Support**: Increased max tokens from 500 to 6000 for longer dictations
-- **Force Mode**: New toggle that allows dictation anywhere, with clipboard fallback when no text field is available
+- **Multilingual Support**: Full support for English, German, Spanish, and French with synced preferences
+- **Keyboard Shortcut**: Default is Ctrl+Shift+1, configurable via chrome://extensions/shortcuts
+- **Extended Token Support**: Supports up to 6000 tokens for longer dictations
 - **Enhanced Recording**: 60-second recording duration with countdown warning in the last 10 seconds
 - **Always-Visible Debug Button**: Debug logs are now accessible via a permanent button in the popup (no triple-click needed)
 

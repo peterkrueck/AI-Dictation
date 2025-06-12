@@ -26,8 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       settingsLink: document.getElementById('settings-link'),
       statusText: document.getElementById('status-text'),
       statusDot: document.querySelector('.status-dot'),
-      debugBtn: document.getElementById('debug-btn'),
-      forceModeToggle: document.getElementById('force-mode-toggle')
+      debugBtn: document.getElementById('debug-btn')
     };
     
     // Check if all elements exist
@@ -54,7 +53,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await Promise.race([updateUITranslations(elements), translationTimeout]);
     
     // Check if API key is set
-    chrome.storage.sync.get(['groqApiKey', 'forceDictation'], async (result) => {
+    chrome.storage.sync.get(['groqApiKey'], async (result) => {
       if (chrome.runtime.lastError) {
         console.error('Error getting storage:', chrome.runtime.lastError);
         return;
@@ -67,11 +66,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       } else {
         if (elements.statusText) elements.statusText.textContent = await t('statusReady');
         if (elements.statusDot) elements.statusDot.style.backgroundColor = '#44BB44';
-      }
-      
-      // Set force mode toggle state
-      if (elements.forceModeToggle) {
-        elements.forceModeToggle.checked = result.forceDictation || false;
       }
     });
     
@@ -96,24 +90,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       }
     });
-    
-    // Handle force mode toggle
-    if (elements.forceModeToggle) {
-      elements.forceModeToggle.addEventListener('change', async () => {
-        chrome.storage.sync.set({ forceDictation: elements.forceModeToggle.checked }, async () => {
-          if (chrome.runtime.lastError) {
-            console.error('Error saving force mode:', chrome.runtime.lastError);
-            return;
-          }
-          showNotification(
-            elements.forceModeToggle.checked 
-              ? await t('forceModeEnabled')
-              : await t('forceModeDisabled'), 
-            'success'
-          );
-        });
-      });
-    }
     
     // Handle debug button (always visible)
     if (elements.debugBtn) {
@@ -207,12 +183,6 @@ async function updateUITranslations(elements) {
         // Update static UI elements
         const h2 = document.querySelector('.popup-container h2');
         if (h2) h2.textContent = await t('extensionTitle');
-        
-        const forceSpan = document.querySelector('.force-mode-container span');
-        if (forceSpan) forceSpan.textContent = await t('forceMode');
-        
-        const forceSmall = document.querySelector('.force-mode-container small');
-        if (forceSmall) forceSmall.textContent = await t('forceModeDescription');
         
         // Update button text while preserving shortcut span
         const dictateBtn = elements?.dictateBtn || document.getElementById('dictate-btn');

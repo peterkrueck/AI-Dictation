@@ -1,6 +1,5 @@
-// Content script with force mode and improved detection
+// Content script - clipboard-only approach for simplicity and reliability
 let recordingIndicator = null;
-let forceMode = false;
 let currentLanguage = 'en';
 let isStoppingRecording = false; // Prevent double-calling stopRecording
 
@@ -61,21 +60,15 @@ function t(key, replacements = {}) {
   return text;
 }
 
-// Load force mode and language preferences
-chrome.storage.sync.get(['forceDictation', 'language'], (result) => {
-  forceMode = result.forceDictation || false;
+// Load language preference
+chrome.storage.sync.get(['language'], (result) => {
   currentLanguage = result.language || 'en';
-  debugLog('Force mode loaded:', forceMode);
   debugLog('Language loaded:', currentLanguage);
 });
 
 // Listen for storage changes
 chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace === 'sync') {
-    if (changes.forceDictation) {
-      forceMode = changes.forceDictation.newValue;
-      debugLog('Force mode updated:', forceMode);
-    }
     if (changes.language) {
       currentLanguage = changes.language.newValue;
       debugLog('Language updated:', currentLanguage);
@@ -83,14 +76,7 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
   }
 });
 
-// Track last focused text element
-window.lastFocusedTextElement = null;
-document.addEventListener('focusin', (e) => {
-  if (isTextInput(e.target)) {
-    window.lastFocusedTextElement = e.target;
-    debugLog('Tracked focused element:', e.target.tagName);
-  }
-}, true);
+// No longer tracking text elements - always use clipboard
 
 // Listen for messages from background script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -121,98 +107,19 @@ if (navigator.userAgent.includes('CrOS')) {
   }, true); // Use capture phase
 }
 
-function findBestTextTarget() {
-  debugLog('Finding best text target...');
-  
-  // Special case for Google Docs
-  if (window.location.hostname === 'docs.google.com') {
-    debugLog('Google Docs detected, returning special marker');
-    return 'google-docs-special-case';
-  }
-  
-  // Priority 1: Currently focused element
-  const focused = document.activeElement;
-  if (isTextInput(focused)) {
-    debugLog('Using focused element:', focused.tagName);
-    return focused;
-  }
-  
-  // Priority 2: Recently focused element
-  if (window.lastFocusedTextElement && 
-      document.body.contains(window.lastFocusedTextElement) && 
-      isTextInput(window.lastFocusedTextElement)) {
-    debugLog('Using last focused element:', window.lastFocusedTextElement.tagName);
-    return window.lastFocusedTextElement;
-  }
-  
-  // Priority 3: Find any visible text input
-  const selectors = [
-    'input[type="text"]:not([readonly]):not([disabled])',
-    'input[type="email"]:not([readonly]):not([disabled])',
-    'input[type="search"]:not([readonly]):not([disabled])',
-    'input[type="url"]:not([readonly]):not([disabled])',
-    'input[type="tel"]:not([readonly]):not([disabled])',
-    'input:not([type]):not([readonly]):not([disabled])',
-    'textarea:not([readonly]):not([disabled])',
-    '[contenteditable="true"]:not([readonly])',
-    '[contenteditable=""]:not([readonly])',
-    '[role="textbox"]:not([aria-readonly="true"]):not([aria-disabled="true"])',
-    '[role="searchbox"]:not([aria-readonly="true"]):not([aria-disabled="true"])',
-    '[role="combobox"]:not([aria-readonly="true"]):not([aria-disabled="true"])'
-  ];
-  
-  const inputs = document.querySelectorAll(selectors.join(', '));
-  
-  for (const input of inputs) {
-    const rect = input.getBoundingClientRect();
-    const style = window.getComputedStyle(input);
-    
-    // Check if element is visible
-    if (rect.width > 0 && 
-        rect.height > 0 && 
-        style.display !== 'none' && 
-        style.visibility !== 'hidden' && 
-        style.opacity !== '0') {
-      debugLog('Found visible input:', input.tagName);
-      return input;
-    }
-  }
-  
-  debugLog('No suitable text target found');
-  return null;
-}
+// Function removed - no longer searching for text fields
 
 // Make functions globally accessible for ChromeOS
 window.voiceDictationExtension = window.voiceDictationExtension || {};
 
 window.voiceDictationExtension.startDictation = function startDictation() {
-  debugLog('Starting dictation, force mode:', forceMode);
+  debugLog('Starting dictation (clipboard mode)');
   
   // Reset stopping flag
   isStoppingRecording = false;
   
-  // In force mode, we don't need a text field at all
-  if (forceMode) {
-    debugLog('Force mode enabled, skipping text field detection');
-    window.voiceDictationTarget = null; // Will use clipboard
-    showNotification(t('forceModeInfo'), 'info');
-    // Proceed directly with recording - no text field needed
-  } else {
-    // Normal mode - require a text field
-    let targetElement = findBestTextTarget();
-    
-    // Handle Google Docs special case
-    if (targetElement === 'google-docs-special-case') {
-      // For Google Docs, we'll proceed with the recording
-      window.voiceDictationTarget = 'google-docs-special-case';
-    } else if (!targetElement) {
-      showNotification(t('noTextFieldError'), 'error');
-      return;
-    } else {
-      // Store the element for direct insertion
-      window.voiceDictationTarget = targetElement;
-    }
-  }
+  // Show info notification
+  showNotification(t('clipboardModeInfo'), 'info');
   
   // Show recording indicator
   window.voiceDictationExtension.showRecordingIndicator();
@@ -236,8 +143,8 @@ window.voiceDictationExtension.startDictation = function startDictation() {
     }
     
     if (response && response.success) {
-      const target = window.voiceDictationTarget;
-      insertText(target, response.text);
+      // Always copy to clipboard
+      copyToClipboard(response.text);
     } else if (response) {
       const errorMsg = response.error || 'Unknown error';
       showNotification(t('error', { error: errorMsg }), 'error');
@@ -247,322 +154,25 @@ window.voiceDictationExtension.startDictation = function startDictation() {
         console.error('Debug information:', response.debugInfo);
       }
     }
-    
-    // Clean up
-    window.voiceDictationTarget = null;
   });
 }
 
-function isTextInput(element) {
-  if (!element) return false;
-  
-  // For shadow DOM elements, try to get the actual input
-  if (element.shadowRoot) {
-    const shadowInput = element.shadowRoot.querySelector('input, textarea, [contenteditable="true"]');
-    if (shadowInput) {
-      element = shadowInput;
-    }
-  }
-  
-  const tagName = element.tagName?.toLowerCase();
-  
-  // Standard form inputs
-  if (tagName === 'textarea') return true;
-  if (tagName === 'input') {
-    const type = (element.type || 'text').toLowerCase();
-    const textTypes = ['text', 'email', 'search', 'url', 'tel', 'password', 'number', 'date', 'time', 'datetime-local'];
-    return textTypes.includes(type);
-  }
-  
-  // Contenteditable elements
-  if (element.isContentEditable) return true;
-  if (element.contentEditable === 'true' || element.contentEditable === 'plaintext-only') return true;
-  
-  // Role-based detection
-  const role = element.getAttribute('role');
-  if (role === 'textbox' || role === 'searchbox' || role === 'combobox') return true;
-  
-  // Check if it has text-like attributes
-  if (element.hasAttribute('contenteditable')) return true;
-  
-  // Check for common editor indicators
-  const classNames = element.className || '';
-  const editorClasses = ['editor', 'editable', 'textbox', 'input'];
-  if (editorClasses.some(cls => classNames.toLowerCase().includes(cls))) return true;
-  
-  return false;
+// Function removed - no longer detecting text input elements
+
+function copyToClipboard(text) {
+  debugLog('Copying text to clipboard');
+  navigator.clipboard.writeText(text).then(() => {
+    showNotification(t('textCopiedSuccess'), 'success');
+    debugLog('Text copied to clipboard successfully');
+  }).catch((err) => {
+    debugLog('Clipboard write failed:', err);
+    showNotification(t('clipboardError', { text }), 'error');
+  });
 }
 
-function insertText(element, text) {
-  // If Force Mode is enabled, ALWAYS copy to clipboard instead of inserting
-  if (forceMode) {
-    debugLog('Force Mode enabled, copying to clipboard instead of inserting');
-    navigator.clipboard.writeText(text).then(() => {
-      showNotification(t('forceModeClipboardSuccess'), 'success');
-      debugLog('Text copied to clipboard successfully (Force Mode)');
-    }).catch((err) => {
-      debugLog('Clipboard write failed in Force Mode:', err);
-      showNotification(t('clipboardError', { text }), 'error');
-    });
-    return;
-  }
-  
-  // Special handling for Google Docs
-  if (element === 'google-docs-special-case') {
-    insertTextGoogleDocs(text);
-    return;
-  }
-  
-  // Special handling for Telekom Email
-  if (window.location.hostname.includes('email.t-online.de')) {
-    const iframe = document.querySelector('iframe[id*="mail"]');
-    if (iframe) {
-      insertTextTelekomEmail(iframe, text);
-      return;
-    }
-  }
-  
-  if (!element) {
-    // Clipboard fallback for when no element is found
-    debugLog('No element found, using clipboard fallback');
-    navigator.clipboard.writeText(text).then(() => {
-      showNotification(t('textCopiedSuccess'), 'success');
-      debugLog('Text copied to clipboard successfully');
-    }).catch((err) => {
-      debugLog('Clipboard write failed:', err);
-      showNotification(t('clipboardError', { text }), 'error');
-    });
-    return;
-  }
-  
-  // Standard insertion method
-  insertTextStandard(element, text);
-}
+// Functions removed - no longer inserting text directly into fields
 
-// Helper function for standard text insertion
-function insertTextStandard(element, text) {
-  debugLog('Inserting text into element:', element.tagName);
-  
-  // Focus the element first
-  element.focus();
-  
-  // Method 1: Try using execCommand (works for most contenteditable)
-  if (document.execCommand && element.isContentEditable) {
-    // Select all content if needed
-    const selection = window.getSelection();
-    const range = document.createRange();
-    
-    // If there's selected text, it will be replaced
-    if (selection.rangeCount > 0) {
-      // Use existing selection
-    } else {
-      // Place cursor at end
-      range.selectNodeContents(element);
-      range.collapse(false);
-      selection.removeAllRanges();
-      selection.addRange(range);
-    }
-    
-    // Try to insert text
-    if (document.execCommand('insertText', false, text)) {
-      // Trigger input event
-      element.dispatchEvent(new Event('input', { bubbles: true }));
-      return;
-    }
-  }
-  
-  // Method 2: For input and textarea elements
-  if (element.tagName?.toLowerCase() === 'input' || element.tagName?.toLowerCase() === 'textarea') {
-    const start = element.selectionStart || 0;
-    const end = element.selectionEnd || start;
-    const currentValue = element.value || '';
-    
-    // Insert text at cursor position
-    element.value = currentValue.substring(0, start) + text + currentValue.substring(end);
-    
-    // Set cursor position after inserted text
-    const newPosition = start + text.length;
-    element.selectionStart = element.selectionEnd = newPosition;
-    
-    // Trigger events
-    element.dispatchEvent(new Event('input', { bubbles: true }));
-    element.dispatchEvent(new Event('change', { bubbles: true }));
-    return;
-  }
-  
-  // Method 3: For contenteditable using Selection API
-  if (element.isContentEditable) {
-    try {
-      const selection = window.getSelection();
-      let range;
-      
-      if (selection.rangeCount > 0) {
-        range = selection.getRangeAt(0);
-        range.deleteContents();
-      } else {
-        range = document.createRange();
-        range.selectNodeContents(element);
-        range.collapse(false);
-      }
-      
-      // Insert text node
-      const textNode = document.createTextNode(text);
-      range.insertNode(textNode);
-      
-      // Move cursor after inserted text
-      range.setStartAfter(textNode);
-      range.setEndAfter(textNode);
-      selection.removeAllRanges();
-      selection.addRange(range);
-      
-      // Trigger input event
-      element.dispatchEvent(new Event('input', { bubbles: true }));
-      return;
-    } catch (e) {
-      console.error('Selection API method failed:', e);
-    }
-  }
-  
-  // Method 4: Fallback - try to set value or textContent
-  try {
-    if ('value' in element) {
-      element.value = (element.value || '') + text;
-      element.dispatchEvent(new Event('input', { bubbles: true }));
-    } else if ('textContent' in element) {
-      element.textContent = (element.textContent || '') + text;
-      element.dispatchEvent(new Event('input', { bubbles: true }));
-    } else {
-      throw new Error('Could not insert text');
-    }
-  } catch (e) {
-    // Last resort: Copy to clipboard
-    navigator.clipboard.writeText(text).then(() => {
-      showNotification(t('directInsertError'), 'info');
-    }).catch(() => {
-      showNotification(t('insertError'), 'error');
-    });
-  }
-}
-
-// Helper function for Google Docs
-function insertTextGoogleDocs(text) {
-  debugLog('Using Google Docs specific insertion method');
-  
-  // Find the Google Docs editor iframe
-  const iframe = document.querySelector('iframe.docs-texteventtarget-iframe');
-  if (!iframe || !iframe.contentDocument) {
-    debugLog('Google Docs iframe not found, using clipboard fallback');
-    navigator.clipboard.writeText(text).then(() => {
-      showNotification(t('textCopiedSuccess'), 'success');
-    }).catch(() => {
-      showNotification(t('clipboardError', { text }), 'error');
-    });
-    return;
-  }
-  
-  try {
-    // Focus the iframe
-    iframe.contentWindow.focus();
-    
-    // Use clipboard API to paste into Google Docs
-    navigator.clipboard.writeText(text).then(() => {
-      // Simulate paste event
-      const pasteEvent = new ClipboardEvent('paste', {
-        clipboardData: new DataTransfer(),
-        bubbles: true,
-        cancelable: true
-      });
-      
-      // Add text to clipboard data
-      pasteEvent.clipboardData.setData('text/plain', text);
-      
-      // Dispatch to iframe's document
-      iframe.contentDocument.dispatchEvent(pasteEvent);
-      
-      // If that doesn't work, try keyboard simulation
-      setTimeout(() => {
-        const keyEvent = new KeyboardEvent('keydown', {
-          key: 'v',
-          ctrlKey: true,
-          bubbles: true
-        });
-        iframe.contentDocument.dispatchEvent(keyEvent);
-      }, 100);
-      
-      debugLog('Text inserted into Google Docs');
-    }).catch((err) => {
-      debugLog('Failed to insert into Google Docs:', err);
-      showNotification(t('directInsertError'), 'info');
-    });
-  } catch (e) {
-    debugLog('Error with Google Docs insertion:', e);
-    navigator.clipboard.writeText(text).then(() => {
-      showNotification(t('textCopiedSuccess'), 'success');
-    }).catch(() => {
-      showNotification(t('clipboardError', { text }), 'error');
-    });
-  }
-}
-
-// Helper function for Telekom Email
-function insertTextTelekomEmail(iframe, text) {
-  debugLog('Using Telekom Email specific insertion method');
-  
-  try {
-    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-    const editor = iframeDoc.querySelector('body[contenteditable="true"], div[contenteditable="true"]');
-    
-    if (editor) {
-      editor.focus();
-      
-      // Try execCommand first
-      if (iframeDoc.execCommand('insertText', false, text)) {
-        debugLog('Text inserted via execCommand in Telekom Email');
-        return;
-      }
-      
-      // Fallback to direct insertion
-      const selection = iframe.contentWindow.getSelection();
-      const range = iframeDoc.createRange();
-      
-      if (selection.rangeCount > 0) {
-        range.deleteContents();
-      }
-      
-      const textNode = iframeDoc.createTextNode(text);
-      range.insertNode(textNode);
-      range.setStartAfter(textNode);
-      range.setEndAfter(textNode);
-      selection.removeAllRanges();
-      selection.addRange(range);
-      
-      debugLog('Text inserted via Selection API in Telekom Email');
-    } else {
-      throw new Error('Editor not found in iframe');
-    }
-  } catch (e) {
-    debugLog('Failed to insert into Telekom Email:', e);
-    navigator.clipboard.writeText(text).then(() => {
-      showNotification(t('textCopiedSuccess'), 'success');
-    }).catch(() => {
-      showNotification(t('clipboardError', { text }), 'error');
-    });
-  }
-}
-
-// Helper function to check element visibility
-function isElementVisible(element) {
-  if (!element) return false;
-  
-  const rect = element.getBoundingClientRect();
-  const style = window.getComputedStyle(element);
-  
-  return rect.width > 0 && 
-         rect.height > 0 && 
-         style.display !== 'none' && 
-         style.visibility !== 'hidden' && 
-         style.opacity !== '0';
-}
+// Functions removed - no longer needed for clipboard-only approach
 
 window.voiceDictationExtension.showRecordingIndicator = function showRecordingIndicator() {
   // Check if already showing to prevent duplicates

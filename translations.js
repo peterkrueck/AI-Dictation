@@ -5,10 +5,6 @@ export const translations = {
     extensionTitle: "🎤 AI Voice Dictation",
     statusReady: "Ready",
     statusApiKeyNotSet: "API key not set",
-    forceMode: "Force Mode",
-    forceModeDescription: "Dictate anywhere, copy to clipboard if needed",
-    forceModeEnabled: "Force Mode enabled - dictate anywhere!",
-    forceModeDisabled: "Force Mode disabled",
     startDictation: "Start Dictation",
     settingsLink: "⚙️ Settings",
     debugButton: "🐛 View Debug Logs",
@@ -16,10 +12,10 @@ export const translations = {
     debugLogsInConsole: "Debug logs in console (F12)",
     tips: "Tips:",
     tipsList: [
-      "Click in any text field",
-      "Press {shortcut} or click button",
+      "Click button or press {shortcut}",
       "Speak clearly",
-      "Press Enter/Esc or click to stop"
+      "Press Enter/Esc or click to stop",
+      "Text is copied to clipboard - paste with Ctrl+V"
     ],
     shortcutNotSet: "Not set",
     shortcutHelpText: "(Set in chrome://extensions/shortcuts)",
@@ -113,13 +109,9 @@ export const translations = {
     // Content script messages
     recordingIndicator: "Recording... Press Enter/Esc or click to stop",
     recordingTimeRemaining: "{seconds}s remaining",
-    noTextFieldError: "Please click in a text field first, or enable \"Force Mode\" in the extension popup to dictate anywhere.",
-    forceModeInfo: "Force Mode: Text will be copied to clipboard",
+    clipboardModeInfo: "Recording... Your text will be copied to clipboard",
     textCopiedSuccess: "✅ Text ready! Press Ctrl+V to paste",
-    forceModeClipboardSuccess: "✅ Output copied to clipboard! Please insert via Ctrl+V",
     clipboardError: "Could not copy to clipboard. Text: {text}",
-    directInsertError: "Could not insert directly. Text copied to clipboard - press Ctrl+V to paste.",
-    insertError: "Could not insert text",
     extensionError: "Extension error: {error}",
     error: "Error: {error}"
   },
@@ -129,10 +121,6 @@ export const translations = {
     extensionTitle: "🎤 KI-Sprachdiktat",
     statusReady: "Bereit",
     statusApiKeyNotSet: "API-Schlüssel nicht gesetzt",
-    forceMode: "Überall-Modus",
-    forceModeDescription: "Überall diktieren, bei Bedarf in Zwischenablage kopieren",
-    forceModeEnabled: "Überall-Modus aktiviert - überall diktieren!",
-    forceModeDisabled: "Überall-Modus deaktiviert",
     startDictation: "Diktat starten",
     settingsLink: "⚙️ Einstellungen",
     debugButton: "🐛 Debug-Logs anzeigen",
@@ -140,10 +128,10 @@ export const translations = {
     debugLogsInConsole: "Debug-Logs in Konsole (F12)",
     tips: "Tipps:",
     tipsList: [
-      "In ein Textfeld klicken",
-      "{shortcut} drücken oder Button klicken",
+      "Button klicken oder {shortcut} drücken",
       "Deutlich sprechen",
-      "Enter/Esc drücken oder klicken zum Beenden"
+      "Enter/Esc drücken oder klicken zum Beenden",
+      "Text wird in Zwischenablage kopiert - mit Strg+V einfügen"
     ],
     shortcutNotSet: "Nicht gesetzt",
     shortcutHelpText: "(Einstellen unter chrome://extensions/shortcuts)",
@@ -237,15 +225,243 @@ export const translations = {
     // Content script messages
     recordingIndicator: "Aufnahme... Enter/Esc drücken oder klicken zum Beenden",
     recordingTimeRemaining: "Noch {seconds}s",
-    noTextFieldError: "Bitte erst in ein Textfeld klicken oder \"Überall-Modus\" im Erweiterungs-Popup aktivieren, um überall zu diktieren.",
-    forceModeInfo: "Überall-Modus: Text wird in Zwischenablage kopiert",
+    clipboardModeInfo: "Aufnahme... Ihr Text wird in die Zwischenablage kopiert",
     textCopiedSuccess: "✅ Text bereit! Strg+V zum Einfügen drücken",
-    forceModeClipboardSuccess: "✅ Text in Zwischenablage kopiert! Bitte über Strg+V einfügen",
     clipboardError: "Konnte nicht in Zwischenablage kopieren. Text: {text}",
-    directInsertError: "Konnte nicht direkt einfügen. Text in Zwischenablage kopiert - Strg+V zum Einfügen drücken.",
-    insertError: "Konnte Text nicht einfügen",
     extensionError: "Erweiterungsfehler: {error}",
     error: "Fehler: {error}"
+  },
+  
+  es: {
+    // Popup
+    extensionTitle: "🎤 Dictado de Voz con IA",
+    statusReady: "Listo",
+    statusApiKeyNotSet: "Clave API no configurada",
+    startDictation: "Iniciar Dictado",
+    settingsLink: "⚙️ Configuración",
+    debugButton: "🐛 Ver Registros de Depuración",
+    debugLogsCopied: "Registros copiados al portapapeles y consola (F12)",
+    debugLogsInConsole: "Registros de depuración en consola (F12)",
+    tips: "Consejos:",
+    tipsList: [
+      "Haz clic en el botón o presiona {shortcut}",
+      "Habla claramente",
+      "Presiona Enter/Esc o haz clic para detener",
+      "El texto se copia al portapapeles - pega con Ctrl+V"
+    ],
+    shortcutNotSet: "No configurado",
+    shortcutHelpText: "(Configurar en chrome://extensions/shortcuts)",
+    
+    // Config/Settings
+    settingsTitle: "🎤 Configuración de Dictado de Voz con IA",
+    apiConfigTitle: "Configuración de API de Groq",
+    apiKeyLabel: "Clave API de Groq:",
+    apiKeyPlaceholder: "gsk_...",
+    apiKeyHelp: "Obtén tu clave API de",
+    modelLabel: "Modelo LLM:",
+    modelHelp: "Qwen QWQ 32B proporciona la mejor calidad para el procesamiento de texto",
+    customModelLabel: "Ruta de Modelo Personalizado:",
+    customModelPlaceholder: "ej. meta-llama/tu-modelo-personalizado",
+    customModelHelp: "Ingresa la ruta completa del modelo de la lista de modelos de Groq",
+    saveButton: "Guardar Configuración",
+    saveSuccess: "¡Configuración guardada exitosamente!",
+    apiKeyRequired: "Por favor ingresa una clave API",
+    apiKeyInvalid: "La clave API debe comenzar con gsk_",
+    customModelRequired: "Por favor ingresa una ruta de modelo personalizado",
+    systemPromptEmpty: "El prompt del sistema no puede estar vacío",
+    
+    // Language settings
+    languageTitle: "Configuración de Idioma",
+    languageLabel: "Idioma de la Interfaz:",
+    languageHelp: "Elige tu idioma preferido para la interfaz de la extensión",
+    
+    // System prompt
+    systemPromptTitle: "Personalización del Prompt del Sistema IA",
+    systemPromptLabel: "Prompt del Sistema Personalizado:",
+    systemPromptPlaceholder: "Ingresa las instrucciones personalizadas del prompt del sistema para la IA...",
+    systemPromptHelp: "Personaliza cómo la IA procesa tu texto dictado. El nombre de la aplicación detectada y la URL de la página actual se proporcionarán automáticamente a la IA después de tu prompt personalizado (ej. como 'Current application context: Gmail' y 'Current URL: https://mail.google.com'). Tu prompt debe instruir a la IA sobre cómo usar esta información. El prompt predeterminado proporciona un ejemplo de esto.",
+    resetPromptButton: "Restablecer a Predeterminado",
+    resetPromptHelp: "Haz clic para restaurar el prompt del sistema predeterminado de la extensión",
+    resetPromptSuccess: "Prompt del sistema restablecido a predeterminado",
+    
+    // Keyboard shortcut
+    keyboardShortcutTitle: "Atajo de Teclado",
+    currentShortcut: "Atajo actual:",
+    shortcutNote: "Nota: Esto coincide con Cmd+Shift+1 en Mac, pero usa Ctrl en Chromebook",
+    shortcutChange: "Para cambiar: Ve a chrome://extensions/shortcuts",
+    shortcutTip: "💡 Consejo: Mientras grabas, presiona Enter o Esc para detener",
+    
+    // Sync
+    syncTitle: "Sincronización Entre Dispositivos",
+    syncDescription: "✅ Esta extensión sincroniza automáticamente la configuración en todos los Chromebooks conectados a tu cuenta de Google.",
+    syncInfo: "¡Tu clave API y preferencias estarán disponibles en todos tus dispositivos!",
+    
+    // How to use
+    howToUseTitle: "Cómo Usar",
+    howToUseSteps: [
+      "Haz clic en el botón o presiona <strong>{shortcut}</strong>",
+      "Habla tu mensaje claramente",
+      "Presiona <strong>Enter</strong> o <strong>Esc</strong> para detener (o haz clic en el indicador rojo)",
+      "Tu texto formateado se copiará al portapapeles",
+      "Pega con <strong>Ctrl+V</strong> donde necesites el texto"
+    ],
+    
+    // New features
+    newFeaturesTitle: "Nuevas Características:",
+    newFeatures: [
+      "✨ <strong>Eliminación de muletillas</strong> - \"eh\", \"um\", las duplicaciones se eliminan automáticamente",
+      "📝 <strong>Formato inteligente</strong> - El texto se formatea según el contexto",
+      "⌨️ <strong>Detención rápida</strong> - Presiona Enter o Esc mientras grabas",
+      "🔄 <strong>Auto-sincronización</strong> - La configuración se sincroniza en todos tus Chromebooks"
+    ],
+    
+    // Supported sites
+    supportedSitesTitle: "Sitios Compatibles",
+    supportedSitesDescription: "La extensión adapta su estilo de escritura para:",
+    supportedSitesList: [
+      "<strong>Correo</strong> - Gmail: Tono profesional y formal",
+      "<strong>Chat</strong> - Slack, Discord: Estilo casual y amigable",
+      "<strong>Redes Sociales</strong> - LinkedIn, Twitter/X, Facebook, Reddit: Apropiado para la plataforma",
+      "<strong>Documentos</strong> - Google Docs: Escritura bien estructurada",
+      "<strong>Notas</strong> - Google Keep, Evernote, OneNote: Claro y organizado",
+      "<strong>Código</strong> - GitHub, Colab, Replit, CodePen: Técnico y preciso",
+      "<strong>Trabajo</strong> - Jira, Asana, Trello, Notion, Figma: Profesional",
+      "<strong>Cualquier otro sitio web</strong> - Escritura estándar y clara"
+    ],
+    
+    // About
+    aboutTitle: "Acerca de",
+    version: "Versión:",
+    model: "Modelo:",
+    modelDescription: "Usando el último modelo Qwen QWQ 32B de Groq",
+    privacy: "Privacidad:",
+    privacyDescription: "Todo el procesamiento, incluida la URL de la página activa para el formato contextual, se realiza a través de llamadas API directas a Groq. La extensión no almacena tu audio de dictado ni las URL completas. Consulta la política de privacidad de Groq para saber cómo manejan los datos de la API.",
+    madeWith: "Hecho con ❤️ para todos los usuarios de Chrome",
+    
+    // Content script messages
+    recordingIndicator: "Grabando... Presiona Enter/Esc o haz clic para detener",
+    recordingTimeRemaining: "Quedan {seconds}s",
+    clipboardModeInfo: "Grabando... Tu texto se copiará al portapapeles",
+    textCopiedSuccess: "✅ ¡Texto listo! Presiona Ctrl+V para pegar",
+    clipboardError: "No se pudo copiar al portapapeles. Texto: {text}",
+    extensionError: "Error de extensión: {error}",
+    error: "Error: {error}"
+  },
+  
+  fr: {
+    // Popup
+    extensionTitle: "🎤 Dictée Vocale par IA",
+    statusReady: "Prêt",
+    statusApiKeyNotSet: "Clé API non définie",
+    startDictation: "Démarrer la Dictée",
+    settingsLink: "⚙️ Paramètres",
+    debugButton: "🐛 Voir les Journaux de Débogage",
+    debugLogsCopied: "Journaux copiés dans le presse-papiers et la console (F12)",
+    debugLogsInConsole: "Journaux de débogage dans la console (F12)",
+    tips: "Conseils :",
+    tipsList: [
+      "Cliquez sur le bouton ou appuyez sur {shortcut}",
+      "Parlez clairement",
+      "Appuyez sur Entrée/Échap ou cliquez pour arrêter",
+      "Le texte est copié dans le presse-papiers - collez avec Ctrl+V"
+    ],
+    shortcutNotSet: "Non défini",
+    shortcutHelpText: "(Configurer dans chrome://extensions/shortcuts)",
+    
+    // Config/Settings
+    settingsTitle: "🎤 Paramètres de Dictée Vocale par IA",
+    apiConfigTitle: "Configuration de l'API Groq",
+    apiKeyLabel: "Clé API Groq :",
+    apiKeyPlaceholder: "gsk_...",
+    apiKeyHelp: "Obtenez votre clé API depuis",
+    modelLabel: "Modèle LLM :",
+    modelHelp: "Qwen QWQ 32B offre la meilleure qualité pour le traitement du texte",
+    customModelLabel: "Chemin du Modèle Personnalisé :",
+    customModelPlaceholder: "ex. meta-llama/votre-modèle-personnalisé",
+    customModelHelp: "Entrez le chemin complet du modèle depuis la liste des modèles Groq",
+    saveButton: "Enregistrer les Paramètres",
+    saveSuccess: "Paramètres enregistrés avec succès !",
+    apiKeyRequired: "Veuillez entrer une clé API",
+    apiKeyInvalid: "La clé API doit commencer par gsk_",
+    customModelRequired: "Veuillez entrer un chemin de modèle personnalisé",
+    systemPromptEmpty: "L'invite système ne peut pas être vide",
+    
+    // Language settings
+    languageTitle: "Paramètres de Langue",
+    languageLabel: "Langue de l'Interface :",
+    languageHelp: "Choisissez votre langue préférée pour l'interface de l'extension",
+    
+    // System prompt
+    systemPromptTitle: "Personnalisation de l'Invite Système IA",
+    systemPromptLabel: "Invite Système Personnalisée :",
+    systemPromptPlaceholder: "Entrez vos instructions d'invite système personnalisées pour l'IA...",
+    systemPromptHelp: "Personnalisez la façon dont l'IA traite votre texte dicté. Le nom de l'application détectée et l'URL de la page actuelle seront automatiquement fournis à l'IA après votre invite personnalisée (ex. comme 'Current application context: Gmail' et 'Current URL: https://mail.google.com'). Votre invite doit indiquer à l'IA comment utiliser ces informations. L'invite par défaut fournit un exemple de cela.",
+    resetPromptButton: "Réinitialiser par Défaut",
+    resetPromptHelp: "Cliquez pour restaurer l'invite système par défaut de l'extension",
+    resetPromptSuccess: "Invite système réinitialisée par défaut",
+    
+    // Keyboard shortcut
+    keyboardShortcutTitle: "Raccourci Clavier",
+    currentShortcut: "Raccourci actuel :",
+    shortcutNote: "Note : Cela correspond à Cmd+Maj+1 sur Mac, mais utilise Ctrl sur Chromebook",
+    shortcutChange: "Pour changer : Allez à chrome://extensions/shortcuts",
+    shortcutTip: "💡 Astuce : Pendant l'enregistrement, appuyez sur Entrée ou Échap pour arrêter",
+    
+    // Sync
+    syncTitle: "Synchronisation Entre Appareils",
+    syncDescription: "✅ Cette extension synchronise automatiquement les paramètres sur tous les Chromebooks connectés à votre compte Google.",
+    syncInfo: "Votre clé API et vos préférences seront disponibles sur tous vos appareils !",
+    
+    // How to use
+    howToUseTitle: "Comment Utiliser",
+    howToUseSteps: [
+      "Cliquez sur le bouton ou appuyez sur <strong>{shortcut}</strong>",
+      "Parlez votre message clairement",
+      "Appuyez sur <strong>Entrée</strong> ou <strong>Échap</strong> pour arrêter (ou cliquez sur l'indicateur rouge)",
+      "Votre texte formaté sera copié dans le presse-papiers",
+      "Collez avec <strong>Ctrl+V</strong> où vous avez besoin du texte"
+    ],
+    
+    // New features
+    newFeaturesTitle: "Nouvelles Fonctionnalités :",
+    newFeatures: [
+      "✨ <strong>Suppression des mots de remplissage</strong> - \"euh\", \"um\", les duplications sont automatiquement supprimées",
+      "📝 <strong>Formatage intelligent</strong> - Le texte est formaté selon le contexte",
+      "⌨️ <strong>Arrêt rapide</strong> - Appuyez sur Entrée ou Échap pendant l'enregistrement",
+      "🔄 <strong>Synchronisation automatique</strong> - Les paramètres se synchronisent sur tous vos Chromebooks"
+    ],
+    
+    // Supported sites
+    supportedSitesTitle: "Sites Pris en Charge",
+    supportedSitesDescription: "L'extension adapte son style d'écriture pour :",
+    supportedSitesList: [
+      "<strong>Email</strong> - Gmail : Ton professionnel et formel",
+      "<strong>Chat</strong> - Slack, Discord : Style décontracté et amical",
+      "<strong>Réseaux Sociaux</strong> - LinkedIn, Twitter/X, Facebook, Reddit : Approprié à la plateforme",
+      "<strong>Documents</strong> - Google Docs : Écriture bien structurée",
+      "<strong>Notes</strong> - Google Keep, Evernote, OneNote : Clair et organisé",
+      "<strong>Code</strong> - GitHub, Colab, Replit, CodePen : Technique et précis",
+      "<strong>Travail</strong> - Jira, Asana, Trello, Notion, Figma : Professionnel",
+      "<strong>Tout autre site web</strong> - Écriture standard et claire"
+    ],
+    
+    // About
+    aboutTitle: "À Propos",
+    version: "Version :",
+    model: "Modèle :",
+    modelDescription: "Utilise le dernier modèle Qwen QWQ 32B de Groq",
+    privacy: "Confidentialité :",
+    privacyDescription: "Tout le traitement, y compris l'URL de la page active pour le formatage contextuel, est effectué via des appels API directs à Groq. L'extension ne stocke pas vos enregistrements audio de dictée ni les URL complètes. Veuillez consulter la politique de confidentialité de Groq pour savoir comment ils gèrent les données API.",
+    madeWith: "Fait avec ❤️ pour tous les utilisateurs de Chrome",
+    
+    // Content script messages
+    recordingIndicator: "Enregistrement... Appuyez sur Entrée/Échap ou cliquez pour arrêter",
+    recordingTimeRemaining: "{seconds}s restantes",
+    clipboardModeInfo: "Enregistrement... Votre texte sera copié dans le presse-papiers",
+    textCopiedSuccess: "✅ Texte prêt ! Appuyez sur Ctrl+V pour coller",
+    clipboardError: "Impossible de copier dans le presse-papiers. Texte : {text}",
+    extensionError: "Erreur d'extension : {error}",
+    error: "Erreur : {error}"
   }
 };
 

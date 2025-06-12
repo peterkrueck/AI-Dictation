@@ -1,0 +1,10 @@
+{
+  "extensionName": {
+    "message": "Dictée Vocale par IA",
+    "description": "Le nom de l'extension"
+  },
+  "extensionDescription": {
+    "message": "Dictez du texte en utilisant votre voix - formaté intelligemment par IA pour n'importe quel site web",
+    "description": "La description de l'extension"
+  }
+}
