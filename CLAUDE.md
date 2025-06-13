@@ -109,6 +109,8 @@ Manual testing is required for Chrome extensions:
 16. Verify personalization fields work correctly in all supported languages
 17. Test that technical system prompt is automatically combined with user preferences
 18. Ensure settings interface is user-friendly and hides technical complexity
+19. **Follow comprehensive setup instructions in README.md** - Verify all setup steps work as documented for new users
+20. **Test troubleshooting scenarios** - Validate troubleshooting steps work for common issues (microphone permissions, API key errors, keyboard shortcuts, etc.)
 
 ## Recent Fixes
 
