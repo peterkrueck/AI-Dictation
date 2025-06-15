@@ -275,7 +275,13 @@ Make your dictation more accurate by adding:
 
 ## 📝 License
 
-This extension is provided as-is for personal and commercial use.
+This project is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
+
+- ✅ **Free for personal use**
+- ✅ **Free for non-commercial use with attribution**
+- ❌ **Commercial use requires explicit permission**
+
+See [LICENSE.md](LICENSE.md) for the full license terms.
 
 ## 🤝 Support
 
