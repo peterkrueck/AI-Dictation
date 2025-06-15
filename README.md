@@ -40,9 +40,27 @@ Before installing, ensure you have:
 
 ### Step 2: Grant Microphone Permission
 
-1. When first using the extension, Chrome will ask for microphone permission
-2. Click "Allow" to enable voice recording
-3. If blocked accidentally, click the 🔒 icon in the address bar and set Microphone to "Allow"
+**Chrome will automatically request microphone access when first using the extension.**
+
+**To grant permission**:
+1. When prompted, click "Allow" in the permission dialog
+2. The extension will save this permission for future use
+
+**If permission was blocked or needs to be changed**:
+1. Look for the 🔒 or 🎤 icon in Chrome's address bar (left side)
+2. Click the icon to open site permissions
+3. Set "Microphone" to "Allow"
+4. Refresh the page
+
+**To manage all Chrome permissions**:
+1. Go to `chrome://settings/content/microphone`
+2. Ensure microphone access is enabled
+3. Add your website domains to "Allowed" if needed
+
+**For system-level microphone issues**:
+- **Windows**: Go to Settings > Privacy > Microphone > Allow apps to access microphone
+- **macOS**: Go to System Preferences > Security & Privacy > Privacy > Microphone > Check Chrome
+- **ChromeOS**: Settings > Advanced > Privacy and security > Site settings > Microphone
 
 ### Step 3: Get Your Groq API Key
 
@@ -66,7 +84,7 @@ Before installing, ensure you have:
 
 ### Step 5: Set Up Keyboard Shortcut (Optional)
 
-**Default shortcut**: `Ctrl+Shift+1`
+**Default shortcut**: `Ctrl+Shift+1` (Windows/Linux/ChromeOS) or `Cmd+Shift+1` (macOS)
 
 **To customize**:
 1. Go to `chrome://extensions/shortcuts`
@@ -74,6 +92,12 @@ Before installing, ensure you have:
 3. Click the pencil icon next to "Start/Stop Dictation"
 4. Press your preferred key combination
 5. Click outside to save
+
+**Tips for choosing shortcuts**:
+- Avoid conflicts with browser shortcuts (e.g., Ctrl+T, Ctrl+W)
+- Try combinations like Ctrl+Shift+D or Alt+Shift+V
+- On macOS, use Cmd instead of Ctrl
+- Test your shortcut on different websites to ensure it works
 
 **Alternative trigger**: Always available via the extension icon in your toolbar
 
@@ -212,12 +236,27 @@ Make your dictation more accurate by adding:
 1. Check if another app is using this shortcut
 2. Go to `chrome://extensions/shortcuts` to verify/change
 3. On ChromeOS, try different key combinations
-4. Restart Chrome after changing shortcuts
+4. On macOS, use Cmd+Shift+1 instead
+5. Restart Chrome after changing shortcuts
+
+**To troubleshoot shortcut conflicts:**
+1. Press the shortcut in different applications to test
+2. Check system-wide shortcuts in OS settings:
+   - **Windows**: Settings > System > About > Advanced system settings > Environment Variables
+   - **macOS**: System Preferences > Keyboard > Shortcuts
+   - **ChromeOS**: Settings > Device > Keyboard
+3. Try alternative combinations like Ctrl+Alt+D or Ctrl+Shift+V
 
 **Shortcut works but nothing happens:**
 - The extension may not be loaded on the current page
-- Try refreshing the page
+- Try refreshing the page or restarting Chrome
 - Check if the site has restricted permissions
+- Test on a simple page like google.com first
+
+**Global shortcut alternatives:**
+- Some users prefer Ctrl+Shift+D or Alt+Shift+V
+- Function key combinations like F12 (if not used by DevTools)
+- Consider combinations that don't conflict with common browser shortcuts
 
 ### Text Insertion Problems
 
