@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
-  "version": "2.0.0",
+  "version": "2.1.1",
   "description": "__MSG_extensionDescription__",
   "default_locale": "en",
   "minimum_chrome_version": "116",
@@ -11,11 +11,7 @@
     "scripting",
     "offscreen",
     "clipboardWrite",
-    "notifications",
-    "audioCapture"
-  ],
-  "optional_permissions": [
-    "management"
+    "notifications"
   ],
   "host_permissions": [
     "https://api.groq.com/*"

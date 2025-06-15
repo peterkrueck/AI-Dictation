@@ -208,6 +208,11 @@ Manual testing is required for Chrome extensions:
   - **Intelligent Prompt Combination** - System automatically combines technical instructions with user personalization preferences
   - **Cleaner Settings UI** - Removed technical complexity from user interface while maintaining full functionality
   - **Generic Template** - Removed hardcoded personal information to make extension suitable for all users
+- **Version 2.1.1 Updates**:
+  - **Fixed Chrome Web Store Rejection** - Removed unnecessary permissions that were causing submission rejection
+  - **Removed audioCapture Permission** - Extension uses getUserMedia via offscreen document which doesn't require audioCapture permission
+  - **Removed management Permission** - Optional permission that was only used for debug logging and not essential for functionality
+  - **Cleaner Permissions** - Extension now only requests the minimal permissions actually needed for core functionality
 
 ## Debugging Features
 
