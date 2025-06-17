@@ -1,0 +1,10 @@
+{
+  "extensionName": {
+    "message": "Dettatura Vocale AI",
+    "description": "Name of the extension"
+  },
+  "extensionDescription": {
+    "message": "Dettatura vocale intelligente con Groq AI",
+    "description": "Description of the extension"
+  }
+}

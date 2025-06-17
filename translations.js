@@ -111,7 +111,7 @@ export const translations = {
     aboutTitle: "About",
     version: "Version:",
     model: "Model:",
-    modelDescription: "Using Groq's latest Llama 4 Scout 17B model",
+    modelDescription: "Using Groq's API for text processing",
     privacy: "Privacy:",
     privacyDescription: "All processing, including the URL of the active page for contextual formatting, is done via direct API calls to Groq. The extension does not store your dictation audio or full URLs. Please refer to Groq's privacy policy for how they handle API data.",
     madeWith: "Made with ❤️ for Dad's Chromebook",
@@ -247,7 +247,7 @@ export const translations = {
     aboutTitle: "Über",
     version: "Version:",
     model: "Modell:",
-    modelDescription: "Verwendet Groqs neuestes Llama 4 Scout 17B Modell",
+    modelDescription: "Verwendet Groqs API für Textverarbeitung",
     privacy: "Datenschutz:",
     privacyDescription: "Die gesamte Verarbeitung, einschließlich der URL der aktiven Seite zur kontextbezogenen Formatierung, erfolgt über direkte API-Aufrufe an Groq. Die Erweiterung speichert weder Ihre Diktat-Audioaufnahmen noch vollständige URLs. Informationen zum Umgang mit API-Daten durch Groq entnehmen Sie bitte deren Datenschutzrichtlinien.",
     madeWith: "Mit ❤️ für Papas Chromebook gemacht",
@@ -383,7 +383,7 @@ export const translations = {
     aboutTitle: "Acerca de",
     version: "Versión:",
     model: "Modelo:",
-    modelDescription: "Usando el último modelo Qwen QWQ 32B de Groq",
+    modelDescription: "Usando la API de Groq para procesamiento de texto",
     privacy: "Privacidad:",
     privacyDescription: "Todo el procesamiento, incluida la URL de la página activa para el formato contextual, se realiza a través de llamadas API directas a Groq. La extensión no almacena tu audio de dictado ni las URL completas. Consulta la política de privacidad de Groq para saber cómo manejan los datos de la API.",
     madeWith: "Hecho con ❤️ para todos los usuarios de Chrome",
@@ -519,7 +519,7 @@ export const translations = {
     aboutTitle: "À Propos",
     version: "Version :",
     model: "Modèle :",
-    modelDescription: "Utilise le dernier modèle Qwen QWQ 32B de Groq",
+    modelDescription: "Utilise l'API Groq pour le traitement du texte",
     privacy: "Confidentialité :",
     privacyDescription: "Tout le traitement, y compris l'URL de la page active pour le formatage contextuel, est effectué via des appels API directs à Groq. L'extension ne stocke pas vos enregistrements audio de dictée ni les URL complètes. Veuillez consulter la politique de confidentialité de Groq pour savoir comment ils gèrent les données API.",
     madeWith: "Fait avec ❤️ pour tous les utilisateurs de Chrome",
@@ -542,6 +542,278 @@ export const translations = {
     clipboardError: "Impossible de copier dans le presse-papiers. Texte : {text}",
     extensionError: "Erreur d'extension : {error}",
     error: "Erreur : {error}"
+  },
+
+  it: {
+    // Popup
+    extensionTitle: "🎤 Dettatura Vocale AI",
+    statusReady: "Pronto",
+    statusApiKeyNotSet: "Chiave API non impostata",
+    startDictation: "Inizia Dettatura",
+    settingsLink: "⚙️ Impostazioni",
+    debugButton: "🐛 Visualizza Log di Debug",
+    debugLogsCopied: "Log copiati negli appunti e console (F12)",
+    debugLogsInConsole: "Log di debug nella console (F12)",
+    tips: "Suggerimenti:",
+    tipsList: [
+      "Clicca il pulsante o premi {shortcut}",
+      "Parla chiaramente",
+      "Premi Invio/Esc o clicca per fermare",
+      "Il testo viene copiato negli appunti - incolla con Ctrl+V"
+    ],
+    shortcutNotSet: "Non impostato",
+    shortcutHelpText: "(Imposta in chrome://extensions/shortcuts)",
+    
+    // Config/Settings
+    settingsTitle: "🎤 Impostazioni Dettatura Vocale AI",
+    apiConfigTitle: "Configurazione API Groq",
+    apiKeyLabel: "Chiave API Groq:",
+    apiKeyPlaceholder: "gsk_...",
+    apiKeyHelp: "Ottieni la tua chiave API da",
+    modelLabel: "Modello LLM:",
+    modelHelp: "Qwen QWQ 32B offre la migliore qualità per l'elaborazione del testo",
+    customModelLabel: "Percorso Modello Personalizzato:",
+    customModelPlaceholder: "es. meta-llama/il-tuo-modello-personalizzato",
+    customModelHelp: "Inserisci il percorso completo del modello dall'elenco modelli Groq",
+    saveButton: "Salva Impostazioni",
+    saveSuccess: "Impostazioni salvate con successo!",
+    apiKeyRequired: "Inserisci una chiave API",
+    apiKeyInvalid: "La chiave API deve iniziare con gsk_",
+    customModelRequired: "Inserisci un percorso modello personalizzato",
+    systemPromptEmpty: "Il prompt di sistema non può essere vuoto",
+    
+    // Language settings
+    languageTitle: "Impostazioni Lingua",
+    languageLabel: "Lingua Interfaccia:",
+    languageHelp: "Scegli la tua lingua preferita per l'interfaccia dell'estensione",
+    
+    // Personalization
+    personalizationTitle: "Impostazioni Personalizzazione",
+    personalizationHelp: "Aggiungi le tue informazioni personali per correzioni di dettatura più accurate. Tutti i campi sono opzionali.",
+    fullNameLabel: "Nome Completo:",
+    fullNamePlaceholder: "es. Mario Rossi",
+    fullNameHelp: "Il tuo nome completo per ortografia accurata durante la dettatura",
+    businessNameLabel: "Nome Azienda/Società:",
+    businessNamePlaceholder: "es. Azienda S.r.l.",
+    businessNameHelp: "Il nome della tua azienda o società",
+    homeAddressLabel: "Indirizzo di Casa:",
+    homeAddressPlaceholder: "es. Via Principale 123, Città, Paese",
+    homeAddressHelp: "Il tuo indirizzo di casa per formattazione accurata",
+    workAddressLabel: "Indirizzo di Lavoro:",
+    workAddressPlaceholder: "es. Viale Business 456, Città, Paese",
+    workAddressHelp: "Il tuo indirizzo di lavoro o ufficio",
+    customSpellingsLabel: "Ortografie e Termini Personalizzati:",
+    customSpellingsPlaceholder: "es. MiaAzienda S.r.l., termini specializzati...",
+    customSpellingsHelp: "Nomi speciali, termini o ortografie che devono essere preservati esattamente (uno per riga o separati da virgole)",
+    
+    // Keyboard shortcut
+    keyboardShortcutTitle: "Scorciatoia da Tastiera",
+    currentShortcut: "Scorciatoia attuale:",
+    shortcutNote: "Nota: Questo corrisponde a Cmd+Shift+1 su Mac, ma usa Ctrl su Chromebook",
+    shortcutChange: "Per cambiare: Vai a chrome://extensions/shortcuts",
+    shortcutTip: "💡 Suggerimento: Durante la registrazione, premi Invio o Esc per fermare",
+    
+    // Sync
+    syncTitle: "Sincronizzazione tra Dispositivi",
+    syncDescription: "✅ Questa estensione sincronizza automaticamente le impostazioni su tutti i Chromebook collegati al tuo account Google.",
+    syncInfo: "La tua chiave API e le preferenze saranno disponibili su tutti i tuoi dispositivi!",
+    
+    // How to use
+    howToUseTitle: "Come Usare",
+    howToUseSteps: [
+      "Clicca il pulsante o premi <strong>{shortcut}</strong>",
+      "Pronuncia il tuo messaggio chiaramente",
+      "Premi <strong>Invio</strong> o <strong>Esc</strong> per fermare (o clicca l'indicatore rosso)",
+      "Il tuo testo formattato sarà copiato negli appunti",
+      "Incolla con <strong>Ctrl+V</strong> dove hai bisogno del testo"
+    ],
+    
+    // New features
+    newFeaturesTitle: "Nuove Funzionalità:",
+    newFeatures: [
+      "✨ <strong>Rimozione parole riempitive</strong> - \"ehm\", \"uh\", le duplicazioni vengono rimosse automaticamente",
+      "📝 <strong>Formattazione intelligente</strong> - Il testo viene formattato in base al contesto",
+      "⌨️ <strong>Arresto rapido</strong> - Premi Invio o Esc durante la registrazione",
+      "🔄 <strong>Sincronizzazione automatica</strong> - Le impostazioni si sincronizzano su tutti i tuoi Chromebook"
+    ],
+    
+    // Supported sites
+    supportedSitesTitle: "Siti Supportati",
+    supportedSitesDescription: "L'estensione adatta il suo stile di scrittura per:",
+    supportedSitesList: [
+      "<strong>Email</strong> - Gmail: Tono professionale e formale",
+      "<strong>Chat</strong> - Slack, Discord: Stile casual e amichevole",
+      "<strong>Social</strong> - LinkedIn, Twitter/X, Facebook, Reddit: Appropriato per la piattaforma",
+      "<strong>Documenti</strong> - Google Docs: Scrittura ben strutturata",
+      "<strong>Note</strong> - Google Keep, Evernote, OneNote: Chiaro e organizzato",
+      "<strong>Codice</strong> - GitHub, Colab, Replit, CodePen: Tecnico e preciso",
+      "<strong>Lavoro</strong> - Jira, Asana, Trello, Notion, Figma: Professionale",
+      "<strong>Qualsiasi altro sito web</strong> - Scrittura standard e chiara"
+    ],
+    
+    // About
+    aboutTitle: "Informazioni",
+    version: "Versione:",
+    model: "Modello:",
+    modelDescription: "Utilizza l'API Groq per l'elaborazione del testo",
+    privacy: "Privacy:",
+    privacyDescription: "Tutta l'elaborazione, incluso l'URL della pagina attiva per la formattazione contestuale, viene eseguita tramite chiamate API dirette a Groq. L'estensione non memorizza i tuoi audio di dettatura né gli URL completi. Consulta la politica sulla privacy di Groq per sapere come gestiscono i dati API.",
+    madeWith: "Realizzato con ❤️ per tutti gli utenti di Chrome",
+    
+    // Permission handling
+    microphonePermissionRequired: "Autorizzazione microfono richiesta per la dettatura vocale",
+    grantPermissionButton: "Concedi Accesso al Microfono",
+    permissionGrantedMessage: "Autorizzazione concessa! Avvio dettatura vocale...",
+    permissionErrorMessage: "Impossibile accedere al microfono. Verifica le impostazioni del sistema.",
+    
+    // Debug
+    debugTitle: "Strumenti di Debug",
+    debugHelp: "Clicca per visualizzare i log di debug nella console del browser per la risoluzione dei problemi",
+    
+    // Content script messages
+    recordingIndicator: "Registrazione... Premi Invio/Esc o clicca per fermare",
+    recordingTimeRemaining: "{seconds}s rimanenti",
+    clipboardModeInfo: "Registrazione... Il tuo testo sarà copiato negli appunti",
+    textCopiedSuccess: "✅ Testo pronto! Premi Ctrl+V per incollare",
+    clipboardError: "Impossibile copiare negli appunti. Testo: {text}",
+    extensionError: "Errore estensione: {error}",
+    error: "Errore: {error}"
+  },
+
+  pt: {
+    // Popup
+    extensionTitle: "🎤 Ditado de Voz com IA",
+    statusReady: "Pronto",
+    statusApiKeyNotSet: "Chave API não definida",
+    startDictation: "Iniciar Ditado",
+    settingsLink: "⚙️ Configurações",
+    debugButton: "🐛 Ver Logs de Debug",
+    debugLogsCopied: "Logs copiados para área de transferência e console (F12)",
+    debugLogsInConsole: "Logs de debug no console (F12)",
+    tips: "Dicas:",
+    tipsList: [
+      "Clique no botão ou pressione {shortcut}",
+      "Fale claramente",
+      "Pressione Enter/Esc ou clique para parar",
+      "O texto é copiado para área de transferência - cole com Ctrl+V"
+    ],
+    shortcutNotSet: "Não definido",
+    shortcutHelpText: "(Configurar em chrome://extensions/shortcuts)",
+    
+    // Config/Settings
+    settingsTitle: "🎤 Configurações de Ditado de Voz com IA",
+    apiConfigTitle: "Configuração da API Groq",
+    apiKeyLabel: "Chave API Groq:",
+    apiKeyPlaceholder: "gsk_...",
+    apiKeyHelp: "Obtenha sua chave API em",
+    modelLabel: "Modelo LLM:",
+    modelHelp: "Qwen QWQ 32B oferece a melhor qualidade para processamento de texto",
+    customModelLabel: "Caminho do Modelo Personalizado:",
+    customModelPlaceholder: "ex. meta-llama/seu-modelo-personalizado",
+    customModelHelp: "Digite o caminho completo do modelo da lista de modelos do Groq",
+    saveButton: "Salvar Configurações",
+    saveSuccess: "Configurações salvas com sucesso!",
+    apiKeyRequired: "Por favor, insira uma chave API",
+    apiKeyInvalid: "A chave API deve começar com gsk_",
+    customModelRequired: "Por favor, insira um caminho de modelo personalizado",
+    systemPromptEmpty: "O prompt do sistema não pode estar vazio",
+    
+    // Language settings
+    languageTitle: "Configurações de Idioma",
+    languageLabel: "Idioma da Interface:",
+    languageHelp: "Escolha seu idioma preferido para a interface da extensão",
+    
+    // Personalization
+    personalizationTitle: "Configurações de Personalização",
+    personalizationHelp: "Adicione suas informações pessoais para correções de ditado mais precisas. Todos os campos são opcionais.",
+    fullNameLabel: "Nome Completo:",
+    fullNamePlaceholder: "ex. João Silva",
+    fullNameHelp: "Seu nome completo para ortografia precisa durante o ditado",
+    businessNameLabel: "Nome da Empresa/Companhia:",
+    businessNamePlaceholder: "ex. Empresa Ltda.",
+    businessNameHelp: "O nome da sua empresa ou companhia",
+    homeAddressLabel: "Endereço Residencial:",
+    homeAddressPlaceholder: "ex. Rua Principal 123, Cidade, País",
+    homeAddressHelp: "Seu endereço residencial para formatação precisa",
+    workAddressLabel: "Endereço de Trabalho:",
+    workAddressPlaceholder: "ex. Avenida Empresarial 456, Cidade, País",
+    workAddressHelp: "Seu endereço de trabalho ou escritório",
+    customSpellingsLabel: "Ortografias e Termos Personalizados:",
+    customSpellingsPlaceholder: "ex. MinhaEmpresa Ltda., termos especializados...",
+    customSpellingsHelp: "Nomes especiais, termos ou ortografias que devem ser preservados exatamente (um por linha ou separados por vírgulas)",
+    
+    // Keyboard shortcut
+    keyboardShortcutTitle: "Atalho de Teclado",
+    currentShortcut: "Atalho atual:",
+    shortcutNote: "Nota: Isso corresponde a Cmd+Shift+1 no Mac, mas usa Ctrl no Chromebook",
+    shortcutChange: "Para alterar: Vá para chrome://extensions/shortcuts",
+    shortcutTip: "💡 Dica: Durante a gravação, pressione Enter ou Esc para parar",
+    
+    // Sync
+    syncTitle: "Sincronização entre Dispositivos",
+    syncDescription: "✅ Esta extensão sincroniza automaticamente as configurações em todos os Chromebooks conectados à sua conta Google.",
+    syncInfo: "Sua chave API e preferências estarão disponíveis em todos os seus dispositivos!",
+    
+    // How to use
+    howToUseTitle: "Como Usar",
+    howToUseSteps: [
+      "Clique no botão ou pressione <strong>{shortcut}</strong>",
+      "Fale sua mensagem claramente",
+      "Pressione <strong>Enter</strong> ou <strong>Esc</strong> para parar (ou clique no indicador vermelho)",
+      "Seu texto formatado será copiado para a área de transferência",
+      "Cole com <strong>Ctrl+V</strong> onde precisar do texto"
+    ],
+    
+    // New features
+    newFeaturesTitle: "Novas Funcionalidades:",
+    newFeatures: [
+      "✨ <strong>Remoção de palavras de preenchimento</strong> - \"ahn\", \"eh\", duplicações são removidas automaticamente",
+      "📝 <strong>Formatação inteligente</strong> - O texto é formatado com base no contexto",
+      "⌨️ <strong>Parada rápida</strong> - Pressione Enter ou Esc durante a gravação",
+      "🔄 <strong>Sincronização automática</strong> - As configurações se sincronizam em todos os seus Chromebooks"
+    ],
+    
+    // Supported sites
+    supportedSitesTitle: "Sites Suportados",
+    supportedSitesDescription: "A extensão adapta seu estilo de escrita para:",
+    supportedSitesList: [
+      "<strong>Email</strong> - Gmail: Tom profissional e formal",
+      "<strong>Chat</strong> - Slack, Discord: Estilo casual e amigável",
+      "<strong>Social</strong> - LinkedIn, Twitter/X, Facebook, Reddit: Apropriado para a plataforma",
+      "<strong>Documentos</strong> - Google Docs: Escrita bem estruturada",
+      "<strong>Notas</strong> - Google Keep, Evernote, OneNote: Claro e organizado",
+      "<strong>Código</strong> - GitHub, Colab, Replit, CodePen: Técnico e preciso",
+      "<strong>Trabalho</strong> - Jira, Asana, Trello, Notion, Figma: Profissional",
+      "<strong>Qualquer outro site</strong> - Escrita padrão e clara"
+    ],
+    
+    // About
+    aboutTitle: "Sobre",
+    version: "Versão:",
+    model: "Modelo:",
+    modelDescription: "Utiliza a API Groq para processamento de texto",
+    privacy: "Privacidade:",
+    privacyDescription: "Todo o processamento, incluindo a URL da página ativa para formatação contextual, é feito através de chamadas API diretas para o Groq. A extensão não armazena seus áudios de ditado nem URLs completas. Consulte a política de privacidade do Groq para saber como eles lidam com dados da API.",
+    madeWith: "Feito com ❤️ para todos os usuários do Chrome",
+    
+    // Permission handling
+    microphonePermissionRequired: "Permissão de microfone necessária para ditado de voz",
+    grantPermissionButton: "Conceder Acesso ao Microfone",
+    permissionGrantedMessage: "Permissão concedida! Iniciando ditado de voz...",
+    permissionErrorMessage: "Não foi possível acessar o microfone. Verifique as configurações do seu sistema.",
+    
+    // Debug
+    debugTitle: "Ferramentas de Debug",
+    debugHelp: "Clique para exibir logs de debug no console do navegador para solução de problemas",
+    
+    // Content script messages
+    recordingIndicator: "Gravando... Pressione Enter/Esc ou clique para parar",
+    recordingTimeRemaining: "{seconds}s restantes",
+    clipboardModeInfo: "Gravando... Seu texto será copiado para a área de transferência",
+    textCopiedSuccess: "✅ Texto pronto! Pressione Ctrl+V para colar",
+    clipboardError: "Não foi possível copiar para área de transferência. Texto: {text}",
+    extensionError: "Erro da extensão: {error}",
+    error: "Erro: {error}"
   }
 };
 

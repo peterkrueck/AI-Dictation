@@ -52,7 +52,7 @@ Voice Dictation/
 ├── config.html                    # Settings page HTML
 ├── config.js                      # Settings page with custom model path, personalization settings, and language selector
 ├── styles.css                     # Shared styles for popup and config pages
-├── translations.js                # Centralized translation system for English, German, Spanish, and French
+├── translations.js                # Centralized translation system for English, German, Spanish, French, Italian, and Portuguese
 ├── _locales/                      # Chrome locale files for extension name/description
 │   ├── en/
 │   │   └── messages.json          # English locale
@@ -60,8 +60,12 @@ Voice Dictation/
 │   │   └── messages.json          # German locale
 │   ├── es/
 │   │   └── messages.json          # Spanish locale
-│   └── fr/
-│       └── messages.json          # French locale
+│   ├── fr/
+│   │   └── messages.json          # French locale
+│   ├── it/
+│   │   └── messages.json          # Italian locale
+│   └── pt/
+│       └── messages.json          # Portuguese locale
 ├── icons/                         # Extension icons for Chrome Web Store and notifications
 │   ├── icon16.png                 # 16x16 icon
 │   ├── icon48.png                 # 48x48 icon
@@ -82,7 +86,7 @@ Voice Dictation/
 - **Clipboard-Only Approach**: All dictated text is copied to clipboard for maximum reliability and flexibility
 - **Context-Aware Formatting**: Detects the current website/app and adjusts writing style accordingly (e.g., formal for Gmail, casual for Slack)
 - **Chrome Storage Sync**: Settings automatically sync across devices using `chrome.storage.sync`
-- **Multilingual Support**: Full support for English, German, Spanish, and French with synced preferences
+- **Multilingual Support**: Full support for English, German, Spanish, French, Italian, and Portuguese with synced preferences
 - **Keyboard Shortcut**: Platform-specific defaults (Cmd+Shift+1 on macOS, Ctrl+Shift+1 on Windows/Linux/ChromeOS), configurable via chrome://extensions/shortcuts
 - **Extended Token Support**: Supports up to 6000 tokens for longer dictations
 - **Enhanced Recording**: 60-second recording duration with countdown warning in the last 10 seconds
@@ -231,7 +235,13 @@ Manual testing is required for Chrome extensions:
   - **Smart Platform Detection** - Extension automatically detects the platform and applies appropriate optimizations without user intervention
   - **Web-Accessible Permission Page** - New permission-request.html provides user-friendly microphone access request with clear instructions
   - **Improved Cross-Platform Error Handling** - Enhanced timeout messages and platform-specific troubleshooting guidance in offscreen.js
-  - **Multilingual Permission Support** - Permission-related messages available in all four supported languages (EN/DE/ES/FR)
+  - **Multilingual Permission Support** - Permission-related messages available in all six supported languages (EN/DE/ES/FR/IT/PT)
+- **Version 2.2.1 Updates**:
+  - **Extended Language Support** - Added Italian and Portuguese language support for complete interface localization
+  - **Six Total Languages** - Extension now supports English, German, Spanish, French, Italian, and Portuguese
+  - **Complete Locale Support** - Added _locales/it/ and _locales/pt/ directories with full translations
+  - **Removed Specific Model References** - Updated About section to remove specific model names, keeping only generic API references
+  - **Enhanced Global Accessibility** - Extension now accessible to Italian and Portuguese-speaking users worldwide
 
 ## Debugging Features
 
