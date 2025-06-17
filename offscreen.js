@@ -39,6 +39,13 @@ async function startRecording(appName, urlParam) {
     
     console.log('[Offscreen] Requesting microphone permission...');
     
+    // Add platform detection for better error messages
+    const platform = navigator.platform;
+    const userAgent = navigator.userAgent;
+    const isMac = /Mac/i.test(platform);
+    const isWindows = /Win/i.test(platform);
+    const isChromeOS = /CrOS/i.test(userAgent);
+    
     // Add permission query if available
     if (navigator.permissions && navigator.permissions.query) {
       try {
@@ -63,9 +70,21 @@ async function startRecording(appName, urlParam) {
       } 
     });
     
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Microphone access timeout after 10 seconds')), 10000)
-    );
+    const timeoutPromise = new Promise((_, reject) => {
+      let timeoutMessage = 'Microphone access timeout after 10 seconds.';
+      
+      if (isChromeOS) {
+        timeoutMessage += ' Please check Settings > Privacy and security > Site settings > Microphone.';
+      } else if (isMac) {
+        timeoutMessage += ' Please check System Preferences > Security & Privacy > Microphone and ensure Chrome has permission.';
+      } else if (isWindows) {
+        timeoutMessage += ' Please check Windows Settings > Privacy > Microphone and ensure Chrome has permission.';
+      } else {
+        timeoutMessage += ' Please check your system settings and ensure Chrome has microphone permission.';
+      }
+      
+      setTimeout(() => reject(new Error(timeoutMessage)), 10000);
+    });
     
     const stream = await Promise.race([streamPromise, timeoutPromise]);
     
@@ -166,10 +185,14 @@ async function startRecording(appName, urlParam) {
   } catch (error) {
     logError('startRecording', error);
     
-    // Detailed error message
+    // Platform-specific error messages
     let detailedError = error.message;
     if (error.name === 'NotAllowedError') {
-      detailedError = 'Microphone permission denied. Please allow microphone access in Chrome settings.';
+      if (isChromeOS) {
+        detailedError = 'Microphone permission denied. Please check Chrome settings and allow microphone access.';
+      } else {
+        detailedError = 'Microphone permission denied. Please allow microphone access in Chrome settings and try again.';
+      }
     } else if (error.name === 'NotFoundError') {
       detailedError = 'No microphone found. Please check your audio input devices.';
     } else if (error.name === 'NotReadableError') {

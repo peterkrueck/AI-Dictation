@@ -10,14 +10,17 @@ A powerful Chrome extension that converts speech to text using AI, with intellig
 - **🌍 Multilingual Support**: Available in English, German, Spanish, and French
 - **⚡ Fast & Reliable**: Uses Groq's Whisper for transcription and Qwen QWQ 32B for formatting
 - **🔒 Privacy-Focused**: No data storage - all processing via direct API calls
-- **⌨️ Keyboard Shortcut**: Quick access with Ctrl+Shift+1
+- **⌨️ Keyboard Shortcut**: Quick access with Cmd+Shift+1 (macOS) or Ctrl+Shift+1 (Windows/Linux/ChromeOS)
 
 ## 📋 Prerequisites
 
 Before installing, ensure you have:
 - **Chrome 116 or later** (required for audio recording)
-- **Microphone access** (extension will request permission)
+- **Operating System**: macOS, Windows, Linux, or ChromeOS
+- **Microphone access** (extension will request permission on first use, except on ChromeOS where it typically works automatically)
 - **Internet connection** (for AI processing)
+
+> **ChromeOS Users**: This extension is optimized for ChromeOS with enhanced keyboard handling and seamless microphone access.
 
 > **Note for Chromebook/Enterprise users**: Some managed devices may restrict extension installation or microphone access. Contact your administrator if you encounter issues.
 
@@ -84,7 +87,9 @@ Before installing, ensure you have:
 
 ### Step 5: Set Up Keyboard Shortcut (Optional)
 
-**Default shortcut**: `Ctrl+Shift+1` (Windows/Linux/ChromeOS) or `Cmd+Shift+1` (macOS)
+**Default shortcuts by platform**:
+- **macOS**: `Cmd+Shift+1`
+- **Windows/Linux/ChromeOS**: `Ctrl+Shift+1`
 
 **To customize**:
 1. Go to `chrome://extensions/shortcuts`
@@ -92,6 +97,8 @@ Before installing, ensure you have:
 3. Click the pencil icon next to "Start/Stop Dictation"
 4. Press your preferred key combination
 5. Click outside to save
+
+**Note**: ChromeOS users benefit from additional keyboard handling optimizations for the best experience.
 
 **Tips for choosing shortcuts**:
 - Avoid conflicts with browser shortcuts (e.g., Ctrl+T, Ctrl+W)

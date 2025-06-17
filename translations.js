@@ -116,6 +116,12 @@ export const translations = {
     privacyDescription: "All processing, including the URL of the active page for contextual formatting, is done via direct API calls to Groq. The extension does not store your dictation audio or full URLs. Please refer to Groq's privacy policy for how they handle API data.",
     madeWith: "Made with ❤️ for Dad's Chromebook",
     
+    // Permission handling
+    microphonePermissionRequired: "Microphone permission required for voice dictation",
+    grantPermissionButton: "Grant Microphone Access",
+    permissionGrantedMessage: "Permission granted! Starting voice dictation...",
+    permissionErrorMessage: "Could not access microphone. Please check your system settings.",
+    
     // Debug
     debugTitle: "Debug Tools",
     debugHelp: "Click to output debug logs to browser console for troubleshooting",
@@ -245,6 +251,12 @@ export const translations = {
     privacy: "Datenschutz:",
     privacyDescription: "Die gesamte Verarbeitung, einschließlich der URL der aktiven Seite zur kontextbezogenen Formatierung, erfolgt über direkte API-Aufrufe an Groq. Die Erweiterung speichert weder Ihre Diktat-Audioaufnahmen noch vollständige URLs. Informationen zum Umgang mit API-Daten durch Groq entnehmen Sie bitte deren Datenschutzrichtlinien.",
     madeWith: "Mit ❤️ für Papas Chromebook gemacht",
+    
+    // Permission handling
+    microphonePermissionRequired: "Mikrofon-Berechtigung für Sprachdiktat erforderlich",
+    grantPermissionButton: "Mikrofon-Zugriff gewähren",
+    permissionGrantedMessage: "Berechtigung erteilt! Starte Sprachdiktat...",
+    permissionErrorMessage: "Konnte nicht auf Mikrofon zugreifen. Bitte überprüfen Sie Ihre Systemeinstellungen.",
     
     // Debug
     debugTitle: "Debug-Werkzeuge",
@@ -376,6 +388,12 @@ export const translations = {
     privacyDescription: "Todo el procesamiento, incluida la URL de la página activa para el formato contextual, se realiza a través de llamadas API directas a Groq. La extensión no almacena tu audio de dictado ni las URL completas. Consulta la política de privacidad de Groq para saber cómo manejan los datos de la API.",
     madeWith: "Hecho con ❤️ para todos los usuarios de Chrome",
     
+    // Permission handling
+    microphonePermissionRequired: "Permiso de micrófono requerido para dictado de voz",
+    grantPermissionButton: "Conceder Acceso al Micrófono",
+    permissionGrantedMessage: "¡Permiso concedido! Iniciando dictado de voz...",
+    permissionErrorMessage: "No se pudo acceder al micrófono. Por favor verifica la configuración de tu sistema.",
+    
     // Debug
     debugTitle: "Herramientas de Depuración",
     debugHelp: "Haz clic para mostrar los registros de depuración en la consola del navegador para solucionar problemas",
@@ -505,6 +523,12 @@ export const translations = {
     privacy: "Confidentialité :",
     privacyDescription: "Tout le traitement, y compris l'URL de la page active pour le formatage contextuel, est effectué via des appels API directs à Groq. L'extension ne stocke pas vos enregistrements audio de dictée ni les URL complètes. Veuillez consulter la politique de confidentialité de Groq pour savoir comment ils gèrent les données API.",
     madeWith: "Fait avec ❤️ pour tous les utilisateurs de Chrome",
+    
+    // Permission handling
+    microphonePermissionRequired: "Autorisation du microphone requise pour la dictée vocale",
+    grantPermissionButton: "Accorder l'Accès au Microphone",
+    permissionGrantedMessage: "Autorisation accordée ! Démarrage de la dictée vocale...",
+    permissionErrorMessage: "Impossible d'accéder au microphone. Veuillez vérifier les paramètres de votre système.",
     
     // Debug
     debugTitle: "Outils de Débogage",

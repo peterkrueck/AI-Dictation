@@ -251,6 +251,68 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
+// Check if microphone permission has been granted
+async function checkMicrophonePermission() {
+  try {
+    // Check stored permission state first
+    const stored = await chrome.storage.local.get(['microphonePermissionGranted']);
+    if (stored.microphonePermissionGranted) {
+      return true;
+    }
+    
+    // For ChromeOS, permissions typically work without issues
+    if (navigator.userAgent && navigator.userAgent.includes('CrOS')) {
+      return true;
+    }
+    
+    // Try to check actual permission state (may not work in service worker)
+    if (typeof navigator !== 'undefined' && navigator.permissions) {
+      const result = await navigator.permissions.query({ name: 'microphone' });
+      return result.state === 'granted';
+    }
+  } catch (error) {
+    debugLog('PERMISSION', 'Error checking permission', error);
+  }
+  return false;
+}
+
+// Request microphone permission by opening a tab
+async function requestMicrophonePermission() {
+  // Skip permission request on ChromeOS where it typically works
+  if (navigator.userAgent && navigator.userAgent.includes('CrOS')) {
+    return true;
+  }
+  
+  return new Promise((resolve) => {
+    // Create a tab for permission request
+    chrome.tabs.create({
+      url: chrome.runtime.getURL('permission-request.html'),
+      active: true
+    }, (tab) => {
+      // Listen for permission result
+      const messageListener = (request, sender) => {
+        if (request.action === 'permissionGranted') {
+          chrome.tabs.remove(tab.id);
+          chrome.runtime.onMessage.removeListener(messageListener);
+          resolve(true);
+        } else if (request.action === 'permissionDenied') {
+          chrome.tabs.remove(tab.id);
+          chrome.runtime.onMessage.removeListener(messageListener);
+          resolve(false);
+        }
+      };
+      chrome.runtime.onMessage.addListener(messageListener);
+      
+      // Timeout after 30 seconds
+      setTimeout(() => {
+        chrome.runtime.onMessage.removeListener(messageListener);
+        chrome.tabs.remove(tab.id).catch(() => {});
+        resolve(false);
+      }, 30000);
+    });
+  });
+}
+
 async function startRecording(tab, sendResponse) {
   debugLog('RECORDING', 'Starting recording', { 
     tabId: tab?.id, 
@@ -259,6 +321,15 @@ async function startRecording(tab, sendResponse) {
   });
   
   try {
+    // Check and request microphone permission if needed (skip on ChromeOS)
+    const hasPermission = await checkMicrophonePermission();
+    if (!hasPermission) {
+      debugLog('RECORDING', 'No microphone permission, requesting...');
+      const granted = await requestMicrophonePermission();
+      if (!granted) {
+        throw new Error('Microphone permission is required for voice dictation. Please grant permission and try again.');
+      }
+    }
     // Check Chrome management status
     if (chrome.management && chrome.management.getSelf) {
       const extensionInfo = await chrome.management.getSelf();

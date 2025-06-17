@@ -32,7 +32,7 @@ This is a static Chrome extension project with no build process required. To dev
 
 3. **Package for distribution**:
    ```bash
-   zip -r voice-dictation-extension.zip manifest.json background.js offscreen.html offscreen.js content.js popup.html popup.js config.html config.js styles.css translations.js README.md _locales icons -x ".*" -x "__MACOSX" -x "CLAUDE.md"
+   zip -r voice-dictation-extension.zip manifest.json background.js offscreen.html offscreen.js permission-request.html content.js popup.html popup.js config.html config.js styles.css translations.js README.md _locales icons -x ".*" -x "__MACOSX" -x "CLAUDE.md"
    ```
 
 ## Project Structure
@@ -45,6 +45,7 @@ Voice Dictation/
 ├── background.js                  # Service worker managing offscreen document and API calls
 ├── offscreen.html                 # Offscreen document for audio recording
 ├── offscreen.js                   # Offscreen document audio recording logic via MediaRecorder
+├── permission-request.html        # Permission request page for non-ChromeOS platforms
 ├── content.js                     # Content script for UI and clipboard integration with multilingual support
 ├── popup.html                     # Extension popup interface HTML
 ├── popup.js                       # Extension popup interface logic with dynamic language switching
@@ -82,7 +83,7 @@ Voice Dictation/
 - **Context-Aware Formatting**: Detects the current website/app and adjusts writing style accordingly (e.g., formal for Gmail, casual for Slack)
 - **Chrome Storage Sync**: Settings automatically sync across devices using `chrome.storage.sync`
 - **Multilingual Support**: Full support for English, German, Spanish, and French with synced preferences
-- **Keyboard Shortcut**: Default is Ctrl+Shift+1, configurable via chrome://extensions/shortcuts
+- **Keyboard Shortcut**: Platform-specific defaults (Cmd+Shift+1 on macOS, Ctrl+Shift+1 on Windows/Linux/ChromeOS), configurable via chrome://extensions/shortcuts
 - **Extended Token Support**: Supports up to 6000 tokens for longer dictations
 - **Enhanced Recording**: 60-second recording duration with countdown warning in the last 10 seconds
 - **Double-Press Prevention**: Prevents accidental double keyboard shortcut presses with debouncing and active recording state management
@@ -111,6 +112,13 @@ Manual testing is required for Chrome extensions:
 18. Ensure settings interface is user-friendly and hides technical complexity
 19. **Follow comprehensive setup instructions in README.md** - Verify all setup steps work as documented for new users
 20. **Test troubleshooting scenarios** - Validate troubleshooting steps work for common issues (microphone permissions, API key errors, keyboard shortcuts, etc.)
+21. **Cross-Platform Testing (Version 2.2.0+)**:
+    - **ChromeOS**: Verify no behavioral changes, all optimizations work, no permission prompts appear
+    - **macOS**: Test Cmd+Shift+1 shortcut and automatic permission request flow via permission-request.html
+    - **Windows**: Test Ctrl+Shift+1 shortcut and permission request functionality  
+    - **Linux**: Test Ctrl+Shift+1 shortcut and permission request functionality
+    - **Platform Detection**: Verify ChromeOS-specific code only runs on ChromeOS devices
+    - **Permission Persistence**: Ensure permission state is remembered after being granted on non-ChromeOS platforms
 
 ## Recent Fixes
 
@@ -213,6 +221,17 @@ Manual testing is required for Chrome extensions:
   - **Removed audioCapture Permission** - Extension uses getUserMedia via offscreen document which doesn't require audioCapture permission
   - **Removed management Permission** - Optional permission that was only used for debug logging and not essential for functionality
   - **Cleaner Permissions** - Extension now only requests the minimal permissions actually needed for core functionality
+- **Version 2.2.0 Updates (Cross-Platform Support)**:
+  - **Full Cross-Platform Compatibility** - Extension now works seamlessly on macOS, Windows, and Linux
+  - **Preserved ChromeOS Optimizations** - ChromeOS-specific code retained with platform detection for continued optimal performance
+  - **Automatic Microphone Permission Handling** - First-time users on non-ChromeOS platforms are automatically prompted for microphone permission via dedicated permission page
+  - **Platform-Specific Keyboard Shortcuts** - Cmd+Shift+1 on macOS, Ctrl+Shift+1 on Windows/Linux/ChromeOS for native platform conventions
+  - **Enhanced Error Messages** - Platform-specific guidance for troubleshooting microphone permission issues (macOS System Preferences, Windows Settings, etc.)
+  - **Permission State Persistence** - Extension remembers when microphone permission has been granted to avoid repeated prompts
+  - **Smart Platform Detection** - Extension automatically detects the platform and applies appropriate optimizations without user intervention
+  - **Web-Accessible Permission Page** - New permission-request.html provides user-friendly microphone access request with clear instructions
+  - **Improved Cross-Platform Error Handling** - Enhanced timeout messages and platform-specific troubleshooting guidance in offscreen.js
+  - **Multilingual Permission Support** - Permission-related messages available in all four supported languages (EN/DE/ES/FR)
 
 ## Debugging Features
 

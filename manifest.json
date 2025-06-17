@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "description": "__MSG_extensionDescription__",
   "default_locale": "en",
   "minimum_chrome_version": "116",
@@ -43,10 +43,19 @@
     "start-dictation": {
       "suggested_key": {
         "default": "Ctrl+Shift+1",
-        "chromeos": "Ctrl+Shift+1"
+        "mac": "Command+Shift+1",
+        "windows": "Ctrl+Shift+1",
+        "chromeos": "Ctrl+Shift+1",
+        "linux": "Ctrl+Shift+1"
       },
       "description": "Start voice dictation"
     }
   },
+  "web_accessible_resources": [
+    {
+      "resources": ["permission-request.html"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "options_page": "config.html"
 }
