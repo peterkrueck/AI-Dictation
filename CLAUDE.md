@@ -78,7 +78,7 @@ Voice Dictation/
 
 - **API Integration**: Uses Groq API with Whisper Large V3 Turbo for transcription and configurable LLM models for text formatting
 - **JSON Response Format**: LLM now returns structured JSON responses for consistent output parsing
-- **Custom Models**: Supports both predefined models (including Qwen QWQ 32B) and custom model paths for future Groq model compatibility
+- **Custom Models**: Supports both predefined models (including Qwen 3 32B) and custom model paths for future Groq model compatibility
 - **Automated System Prompt**: Technical AI instructions are now hidden from users and automatically applied
 - **User Personalization**: Simple interface for adding personal information (name, addresses, custom spellings) without technical complexity
 - **Enhanced System Prompt**: Prevents AI from interpreting dictated text as commands - treats all input as content to be formatted
@@ -103,7 +103,7 @@ Manual testing is required for Chrome extensions:
 5. Test custom model path functionality
 6. Test custom system prompt configuration and reset functionality
 7. Test JSON response parsing with command-like dictations (e.g., "Can you help me schedule a meeting?")
-8. Test with Qwen QWQ 32B model option
+8. Test with Qwen 3 32B model option
 9. Verify longer dictations work with increased token limit
 10. Test language switching between English and German
 11. Verify all UI elements update correctly when switching languages
@@ -141,7 +141,7 @@ Manual testing is required for Chrome extensions:
 - **Updated default system prompt** - Now uses proven formatting instructions from macOS Shortcuts version with personal context support
 - **Implemented JSON response format** - LLM now returns structured JSON for consistent output parsing
 - **Enhanced system prompt** - Explicitly prevents AI from interpreting dictated text as commands or questions
-- **Added Qwen QWQ 32B model** - New model option available in settings
+- **Added Qwen 3 32B model** - New model option available in settings
 - **Increased token limit** - Extended from 500 to 6000 tokens for longer dictations
 - **Added private address** - Included Waldweg 17, 56812 Dohr in spelling corrections
 - **Version 1.1 Updates**:
@@ -185,7 +185,7 @@ Manual testing is required for Chrome extensions:
   - **Better Error Messages** - Enhanced error handling with user-friendly notifications for common issues
   - **Content Script Injection** - Improved reliability of content script loading with verification and timeout handling
   - **Icon Support Added** - Added proper extension icons for notifications and Chrome Web Store
-  - **Fixed API Compatibility Issue** - Changed default model to `qwen-qwq-32b` and enhanced error logging for better API debugging
+  - **Fixed API Compatibility Issue** - Changed default model to `qwen/qwen3-32b` and enhanced error logging for better API debugging
   - **Enhanced Debug Logging** - Added comprehensive request/response logging in processAudio function for troubleshooting API issues
   - **Model Selection Fix** - Corrected default model selection to match available Groq models and user preferences
 - **Version 1.4.1 Updates**:

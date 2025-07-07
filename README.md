@@ -8,7 +8,7 @@ A powerful Chrome extension that converts speech to text using AI, with intellig
 - **🤖 AI-Powered Formatting**: Automatically formats your text based on the website context
 - **📋 Clipboard Integration**: Text is copied to clipboard for easy pasting anywhere
 - **🌍 Multilingual Support**: Available in English, German, Spanish, and French
-- **⚡ Fast & Reliable**: Uses Groq's Whisper for transcription and Qwen QWQ 32B for formatting
+- **⚡ Fast & Reliable**: Uses Groq's Whisper for transcription and Qwen 3 32B for formatting
 - **🔒 Privacy-Focused**: No data storage - all processing via direct API calls
 - **⌨️ Keyboard Shortcut**: Quick access with Cmd+Shift+1 (macOS) or Ctrl+Shift+1 (Windows/Linux/ChromeOS)
 

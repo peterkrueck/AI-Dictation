@@ -605,7 +605,7 @@ async function processAudio(audioBlob, appName, currentUrl) {
   // Get settings from storage
   const storage = await chrome.storage.sync.get(['groqApiKey', 'model', 'customModel', 'fullName', 'businessName', 'homeAddress', 'workAddress', 'customSpellings']);
   const apiKey = storage.groqApiKey;
-  let model = storage.model || 'qwen-qwq-32b';
+  let model = storage.model || 'qwen/qwen3-32b';
   
   debugLog('PROCESS_AUDIO', 'Settings loaded', { 
     hasApiKey: !!apiKey, 
